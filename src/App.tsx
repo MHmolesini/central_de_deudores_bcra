@@ -24,7 +24,7 @@ function App() {
         fetchChequesRechazados(cuit)
       ]);
 
-      if (historialData.status !== 0) {
+      if (historialData.status !== 0 && historialData.status !== 200) {
         setError('No se pudo encontrar información para este CUIT/CUIL.');
       } else {
         setHistorial(historialData);

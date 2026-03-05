@@ -64,8 +64,14 @@ export async function fetchHistorialCrediticio(cuit: string): Promise<BCRAHistor
   return data;
 }
 
+export interface BCRAChequesResponse {
+  status: number;
+  results: any;
+}
+
 // Keeping this stubbed out for now as the user didn't provide actual endpoint mapping for cheques,
 // but the interface could be utilized similarly if needed.
-export async function fetchChequesRechazados(cuit: string): Promise<any> {
-  return null; // Opting out for this iteration unless requested
+export async function fetchChequesRechazados(_cuit: string): Promise<BCRAChequesResponse | null> {
+  // Use _cuit to bypass unused variable warning for now
+  return null;
 }

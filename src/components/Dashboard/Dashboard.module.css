@@ -92,6 +92,7 @@
     letter-spacing: -0.05em;
     background: linear-gradient(to right, #ffffff, #a1a1aa);
     -webkit-background-clip: text;
+    background-clip: text;
     -webkit-text-fill-color: transparent;
 }
 
@@ -104,6 +105,64 @@
     margin-top: 1rem;
 }
 
+/* New layout */
+.twoCol {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 1.5rem;
+    align-items: stretch;
+}
+
+.entitiesCard {
+    display: flex;
+    flex-direction: column;
+}
+
+.entityList {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    margin-top: 0.5rem;
+    overflow-y: auto;
+    max-height: 480px;
+    padding-right: 0.5rem;
+}
+
+.entityRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    background-color: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-md);
+    transition: background-color var(--transition-fast);
+}
+
+.entityRow:hover {
+    background-color: rgba(255, 255, 255, 0.05);
+}
+
+.entityInfo {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    max-width: 65%;
+}
+
+.entityName {
+    font-weight: 500;
+    font-size: 0.95rem;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.entityAmount {
+    color: var(--text-secondary);
+    font-size: 0.875rem;
+}
+
 @keyframes fadeIn {
     from {
         opacity: 0;
@@ -113,6 +172,12 @@
     to {
         opacity: 1;
         transform: translateY(0);
+    }
+}
+
+@media (max-width: 1024px) {
+    .twoCol {
+        grid-template-columns: 1fr;
     }
 }
 

@@ -43,8 +43,16 @@ export function DebtChart({ data }: Props) {
         };
     });
 
-    // Calculate formatted labels (e.g., '0824' -> 'Ago 24')
+    // Calculate formatted labels. Using Real API format "YYYYMM"
     const formattedPeriods = periods.map(p => {
+        if (p.length === 6) {
+            const yr = p.substring(0, 4);
+            const ms = p.substring(4, 6);
+            const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
+            const mIdx = parseInt(ms, 10) - 1;
+            return `${monthNames[mIdx] || ms} ${yr}`;
+        }
+        // Fallback for mocked format if needed
         if (p.length === 4) {
             const ms = p.substring(0, 2);
             const yr = p.substring(2, 4);
@@ -60,19 +68,19 @@ export function DebtChart({ data }: Props) {
         tooltip: {
             trigger: 'axis',
             axisPointer: { type: 'shadow' },
-            backgroundColor: 'rgba(17, 17, 17, 0.9)',
-            borderColor: 'rgba(255, 255, 255, 0.1)',
+            backgroundColor: '#0a0a0a',
+            borderColor: 'rgba(255, 255, 255, 0.2)',
             textStyle: { color: '#ededed' },
             formatter: (params: any) => {
                 let text = `<strong>${params[0].name}</strong><br/>`;
                 let total = 0;
                 params.forEach((p: any) => {
                     if (p.value > 0) {
-                        text += `${p.marker} ${p.seriesName}: $${p.value.toLocaleString('es-AR')}<br/>`;
+                        text += `${p.marker} <span style="font-size: 0.8em">${p.seriesName}</span>: $${p.value.toLocaleString('es-AR')}M<br/>`;
                         total += p.value;
                     }
                 });
-                text += `<strong>Total: $${total.toLocaleString('es-AR')}</strong>`;
+                text += `<hr style="border:0;border-top:1px solid rgba(255,255,255,0.1);margin:4px 0" /><strong>Total: $${total.toLocaleString('es-AR')}M</strong>`;
                 return text;
             }
         },
@@ -99,7 +107,7 @@ export function DebtChart({ data }: Props) {
             type: 'value',
             axisLabel: {
                 color: '#a1a1aa',
-                formatter: (value: number) => `$${(value / 1000)}k`
+                formatter: (value: number) => `$${value.toLocaleString('es-AR')}M`
             },
             splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)', type: 'dashed' } }
         },
@@ -107,7 +115,7 @@ export function DebtChart({ data }: Props) {
     };
 
     return (
-        <div style={{ height: '400px', width: '100%' }}>
+        <div style={{ height: '480px', width: '100%' }}>
             <ReactECharts
                 option={options}
                 style={{ height: '100%', width: '100%' }}
