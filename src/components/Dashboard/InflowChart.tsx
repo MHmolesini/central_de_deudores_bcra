@@ -1,6 +1,8 @@
-import ReactECharts from 'echarts-for-react';
 import { useState } from 'react';
+import ReactECharts from 'echarts-for-react';
+import { Download } from 'lucide-react';
 import type { BCRAPeriodo } from '../../services/bcra';
+import { exportToExcel, formatPeriodLabel } from '../../utils/exportUtils';
 
 interface Props {
     data: BCRAPeriodo[];
@@ -10,6 +12,40 @@ interface Props {
 
 export function InflowChart({ data, currency = 'ARS', exchangeRates = {} }: Props) {
     const [viewMode, setViewMode] = useState<'mensual' | 'acumulada'>('mensual');
+
+    const handleExport = () => {
+        const banksList = Array.from(new Set(data.flatMap(p => p.entidades.map(e => e.entidad))));
+        const reversedData = [...data].reverse();
+
+        const exportData = reversedData.flatMap((period, pIdx) => {
+            return banksList.map(bank => {
+                const match = period.entidades.find(e => e.entidad === bank);
+                const rawMonto = match ? match.monto : 0;
+                const rate = exchangeRates[period.periodo] || 1;
+                const currentVal = currency === 'ARS' ? rawMonto : (rawMonto * 1000) / rate;
+
+                let prevVal = 0;
+                if (pIdx > 0) {
+                    const prevPeriod = reversedData[pIdx - 1];
+                    const prevMatch = prevPeriod.entidades.find(e => e.entidad === bank);
+                    const prevRawMonto = prevMatch ? prevMatch.monto : 0;
+                    const prevRate = exchangeRates[prevPeriod.periodo] || 1;
+                    prevVal = currency === 'ARS' ? prevRawMonto : (prevRawMonto * 1000) / prevRate;
+                }
+
+                const variation = pIdx > 0 ? currentVal - prevVal : 0;
+
+                return {
+                    'Periodo': formatPeriodLabel(period.periodo),
+                    'Entidad': bank,
+                    'Variación': variation,
+                    'Moneda': currency === 'ARS' ? 'ARS (Miles)' : 'USD'
+                };
+            }).filter(row => row.Variación !== 0 || pIdx === 0);
+        });
+
+        exportToExcel(exportData, `Flujo_Fondos_${currency}`);
+    };
 
     // Extract periods and unique banks (entidades) to map series
     const periods = data.map((d) => d.periodo).reverse();
@@ -167,8 +203,44 @@ export function InflowChart({ data, currency = 'ARS', exchangeRates = {} }: Prop
 
     return (
         <div style={{ width: '100%' }}>
-            {/* Toggle Container */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px', paddingRight: '10px' }}>
+            {/* Toggle Container - Absolute positioned Top Right */}
+            <div style={{
+                position: 'absolute',
+                top: '1.5rem',
+                right: '1.5rem',
+                display: 'flex',
+                gap: '8px',
+                alignItems: 'center',
+                zIndex: 10
+            }}>
+                <button
+                    onClick={handleExport}
+                    style={{
+                        background: 'rgba(255,255,255,0.05)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: '6px',
+                        color: '#a1a1aa',
+                        padding: '6px 10px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        fontSize: '0.8rem',
+                        transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.color = '#fff';
+                        e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.color = '#a1a1aa';
+                        e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                    }}
+                >
+                    <Download size={14} />
+                    XLSX
+                </button>
+
                 <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '6px', padding: '2px', display: 'flex', gap: '4px' }}>
                     <button
                         onClick={() => setViewMode('mensual')}

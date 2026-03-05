@@ -1,6 +1,8 @@
-import ReactECharts from 'echarts-for-react';
 import { useState } from 'react';
+import ReactECharts from 'echarts-for-react';
+import { Download } from 'lucide-react';
 import type { BCRAPeriodo } from '../../services/bcra';
+import { exportToExcel, formatPeriodLabel } from '../../utils/exportUtils';
 
 interface Props {
     data: BCRAPeriodo[];
@@ -10,6 +12,20 @@ interface Props {
 
 export function DebtChart({ data, currency = 'ARS', exchangeRates = {} }: Props) {
     const [viewMode, setViewMode] = useState<'amount' | 'percent'>('amount');
+
+    const handleExport = () => {
+        const exportData = data.flatMap(period => {
+            const rate = exchangeRates[period.periodo] || 1;
+            return period.entidades.map(entidad => ({
+                'Periodo': formatPeriodLabel(period.periodo),
+                'Entidad': entidad.entidad,
+                'Situación': entidad.situacion,
+                'Monto': currency === 'ARS' ? entidad.monto : (entidad.monto * 1000) / rate,
+                'Moneda': currency === 'ARS' ? 'ARS (Miles)' : 'USD'
+            }));
+        });
+        exportToExcel(exportData, `Evolución_Deuda_${currency}`);
+    };
 
     // Extract periods and unique banks (entidades) to map series
     const periods = data.map((d) => d.periodo).reverse();
@@ -212,8 +228,44 @@ export function DebtChart({ data, currency = 'ARS', exchangeRates = {} }: Props)
 
     return (
         <div style={{ width: '100%' }}>
-            {/* Toggle Container */}
-            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px', paddingRight: '10px' }}>
+            {/* Toggle Container - Absolute positioned Top Right */}
+            <div style={{
+                position: 'absolute',
+                top: '1.5rem',
+                right: '1.5rem',
+                display: 'flex',
+                gap: '8px',
+                alignItems: 'center',
+                zIndex: 10
+            }}>
+                <button
+                    onClick={handleExport}
+                    style={{
+                        background: 'rgba(255,255,255,0.05)',
+                        border: '1px solid rgba(255,255,255,0.1)',
+                        borderRadius: '6px',
+                        color: '#a1a1aa',
+                        padding: '6px 10px',
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '6px',
+                        fontSize: '0.8rem',
+                        transition: 'all 0.2s'
+                    }}
+                    onMouseEnter={(e) => {
+                        e.currentTarget.style.color = '#fff';
+                        e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
+                    }}
+                    onMouseLeave={(e) => {
+                        e.currentTarget.style.color = '#a1a1aa';
+                        e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                    }}
+                >
+                    <Download size={14} />
+                    XLSX
+                </button>
+
                 <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '6px', padding: '2px', display: 'flex', gap: '4px' }}>
                     <button
                         onClick={() => setViewMode('amount')}

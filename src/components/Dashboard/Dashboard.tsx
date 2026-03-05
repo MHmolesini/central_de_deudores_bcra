@@ -135,9 +135,7 @@ export function Dashboard({ historial, cheques, exchangeRates }: Props) {
                     </div>
                 </div>
 
-                <div className={styles.card}>
-                    <DebtHeatmap data={periodos} currency={currency} exchangeRates={exchangeRates} />
-                </div>
+                <DebtHeatmap data={periodos} currency={currency} exchangeRates={exchangeRates} />
 
                 <div className={`${styles.card} ${styles.entitiesCard}`}>
                     <h3>Situación Actual por Entidad</h3>

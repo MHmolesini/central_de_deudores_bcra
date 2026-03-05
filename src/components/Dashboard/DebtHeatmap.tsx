@@ -1,7 +1,8 @@
 import { useMemo, useState, useRef, useEffect } from 'react';
 import ReactECharts from 'echarts-for-react';
-import { LayoutGrid, Filter, ChevronDown } from 'lucide-react';
+import { LayoutGrid, Filter, ChevronDown, Download } from 'lucide-react';
 import type { BCRAPeriodo } from '../../services/bcra';
+import { exportToExcel, formatPeriodLabel } from '../../utils/exportUtils';
 import styles from './Dashboard.module.css';
 
 interface Props {
@@ -14,6 +15,26 @@ export function DebtHeatmap({ data, currency = 'ARS', exchangeRates = {} }: Prop
     const [selectedBank, setSelectedBank] = useState<string>('all');
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
+
+    const handleExport = () => {
+        const exportData = heatmapData.entries.map(entry => {
+            const monthIdx = entry[0];
+            const yearIdx = entry[1];
+            const variation = entry[2];
+            const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+            const year = heatmapData.yearList[yearIdx];
+
+            return {
+                'Año': year,
+                'Mes': monthNames[monthIdx],
+                'Entidad': selectedBank === 'all' ? 'Total' : selectedBank,
+                'Variación': variation,
+                'Moneda': currency === 'ARS' ? 'ARS (Miles)' : 'USD'
+            };
+        });
+
+        exportToExcel(exportData, `Heatmap_Deuda_${selectedBank}_${currency}`);
+    };
 
     // Close menu when clicking outside
     useEffect(() => {
@@ -192,50 +213,82 @@ export function DebtHeatmap({ data, currency = 'ARS', exchangeRates = {} }: Prop
                     </div>
                 </div>
 
-                <div className={styles.filterContainer} ref={menuRef}>
-                    <div className={styles.customSelect}>
-                        <button
-                            className={styles.selectTrigger}
-                            onClick={() => setIsMenuOpen(!isMenuOpen)}
-                        >
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                                <Filter size={16} style={{ color: '#a1a1aa' }} />
-                                <span>{selectedBank === 'all' ? 'Todos los Bancos' : selectedBank}</span>
-                            </div>
-                            <ChevronDown
-                                size={16}
-                                style={{
-                                    transition: 'transform 0.2s ease',
-                                    transform: isMenuOpen ? 'rotate(180deg)' : 'rotate(0)'
-                                }}
-                            />
-                        </button>
+                <div className={styles.filterContainer} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                    <button
+                        onClick={handleExport}
+                        style={{
+                            background: 'rgba(255,255,255,0.05)',
+                            border: '1px solid rgba(255,255,255,0.1)',
+                            borderRadius: '10px',
+                            color: '#a1a1aa',
+                            padding: '8px 12px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '8px',
+                            fontSize: '0.85rem',
+                            transition: 'all 0.2s',
+                            height: '38px'
+                        }}
+                        onMouseEnter={(e) => {
+                            e.currentTarget.style.color = '#fff';
+                            e.currentTarget.style.background = 'rgba(255,255,255,0.1)';
+                        }}
+                        onMouseLeave={(e) => {
+                            e.currentTarget.style.color = '#a1a1aa';
+                            e.currentTarget.style.background = 'rgba(255,255,255,0.05)';
+                        }}
+                    >
+                        <Download size={16} />
+                        XLSX
+                    </button>
 
-                        {isMenuOpen && (
-                            <div className={styles.selectMenu}>
-                                <div
-                                    className={`${styles.selectOption} ${selectedBank === 'all' ? styles.active : ''}`}
-                                    onClick={() => {
-                                        setSelectedBank('all');
-                                        setIsMenuOpen(false);
-                                    }}
-                                >
-                                    Todos los Bancos
+                    <div ref={menuRef}>
+                        <div className={styles.customSelect}>
+                            <button
+                                className={styles.selectTrigger}
+                                onClick={() => setIsMenuOpen(!isMenuOpen)}
+                                style={{ height: '38px' }}
+                            >
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <Filter size={16} style={{ color: '#a1a1aa' }} />
+                                    <span>{selectedBank === 'all' ? 'Todos los Bancos' : selectedBank}</span>
                                 </div>
-                                {bankNames.map(name => (
+                                <ChevronDown
+                                    size={16}
+                                    style={{
+                                        transition: 'transform 0.2s ease',
+                                        transform: isMenuOpen ? 'rotate(180deg)' : 'rotate(0)'
+                                    }}
+                                />
+                            </button>
+
+                            {isMenuOpen && (
+                                <div className={styles.selectMenu}>
                                     <div
-                                        key={name}
-                                        className={`${styles.selectOption} ${selectedBank === name ? styles.active : ''}`}
+                                        className={`${styles.selectOption} ${selectedBank === 'all' ? styles.active : ''}`}
                                         onClick={() => {
-                                            setSelectedBank(name);
+                                            setSelectedBank('all');
                                             setIsMenuOpen(false);
                                         }}
                                     >
-                                        {name}
+                                        Todos los Bancos
                                     </div>
-                                ))}
-                            </div>
-                        )}
+                                    {bankNames.map(name => (
+                                        <div
+                                            key={name}
+                                            className={`${styles.selectOption} ${selectedBank === name ? styles.active : ''}`}
+                                            onClick={() => {
+                                                setSelectedBank(name);
+                                                setIsMenuOpen(false);
+                                            }}
+                                        >
+                                            {name}
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </div>
                     </div>
                 </div>
             </div>
