@@ -45,63 +45,61 @@ export function Dashboard({ historial, cheques }: Props) {
     return (
         <div className={styles.dashboard}>
             <header className={styles.header}>
-                <div>
+                <div className={styles.headerLeft}>
                     <h2 className={styles.title}>{denominacion}</h2>
                     <p className={styles.subtitle}>CUIT/CUIL: {identificacion}</p>
+
+                    {/* Chips for warning flags */}
+                    <div className={styles.flags}>
+                        {hasJudicialProcess && (
+                            <span className={`${styles.badge} ${styles.danger}`}>
+                                <ShieldAlert size={14} /> Proceso Judicial
+                            </span>
+                        )}
+                        {hasRevision && (
+                            <span className={`${styles.badge} ${styles.warning}`}>
+                                <AlertCircle size={14} /> En Revisión
+                            </span>
+                        )}
+                        {totalCheques > 0 && (
+                            <span className={`${styles.badge} ${styles.danger}`}>
+                                <FileWarning size={14} /> Cheques Rechazados ({totalCheques})
+                            </span>
+                        )}
+                    </div>
                 </div>
 
-                {/* Chips for warning flags */}
-                <div className={styles.flags}>
-                    {hasJudicialProcess && (
-                        <span className={`${styles.badge} ${styles.danger}`}>
-                            <ShieldAlert size={14} /> Proceso Judicial
-                        </span>
-                    )}
-                    {hasRevision && (
-                        <span className={`${styles.badge} ${styles.warning}`}>
-                            <AlertCircle size={14} /> En Revisión
-                        </span>
-                    )}
-                    {totalCheques > 0 && (
-                        <span className={`${styles.badge} ${styles.danger}`}>
-                            <FileWarning size={14} /> Cheques Rechazados ({totalCheques})
-                        </span>
-                    )}
+                <div className={styles.headerRight}>
+                    <p className={styles.headerRightSubtitle}>Deuda Total ({periodoStr})</p>
+                    <p className={styles.amount}>
+                        ${totalDebt.toLocaleString('es-AR')}M
+                    </p>
                 </div>
             </header>
 
             <div className={styles.grid}>
-                <div className={`${styles.card} ${styles.totalCard}`}>
-                    <h3>Deuda Total ({periodoStr})</h3>
-                    <p className={styles.amount}>
-                        ${totalDebt.toLocaleString('es-AR')}
-                    </p>
+                <div className={`${styles.card} ${styles.chartCard}`}>
+                    <h3>Evolución de Deuda (Últimos Meses)</h3>
+                    <div className={styles.chartWrapper}>
+                        <DebtChart data={periodos} />
+                    </div>
                 </div>
 
-                <div className={styles.twoCol}>
-                    <div className={`${styles.card} ${styles.entitiesCard}`}>
-                        <h3>Situación Actual por Entidad</h3>
-                        <div className={styles.entityList}>
-                            {currentPeriod.entidades.map((entidad, idx) => (
-                                <div key={idx} className={styles.entityRow}>
-                                    <div className={styles.entityInfo}>
-                                        <span className={styles.entityName}>{entidad.entidad}</span>
-                                        <span className={styles.entityAmount}>${entidad.monto.toLocaleString('es-AR')}</span>
-                                    </div>
-                                    <StatusIndicator situacion={entidad.situacion} />
+                <div className={`${styles.card} ${styles.entitiesCard}`}>
+                    <h3>Situación Actual por Entidad</h3>
+                    <div className={styles.entityGrid}>
+                        {currentPeriod.entidades.map((entidad, idx) => (
+                            <div key={idx} className={styles.entityRow}>
+                                <div className={styles.entityInfo}>
+                                    <span className={styles.entityName}>{entidad.entidad}</span>
+                                    <span className={styles.entityAmount}>${entidad.monto.toLocaleString('es-AR')}M</span>
                                 </div>
-                            ))}
-                            {currentPeriod.entidades.length === 0 && (
-                                <p className={styles.subtitle} style={{ marginTop: '0.5rem' }}>Sin deudas en el último periodo reportado.</p>
-                            )}
-                        </div>
-                    </div>
-
-                    <div className={`${styles.card} ${styles.chartCard}`}>
-                        <h3>Evolución de Deuda (Últimos Meses)</h3>
-                        <div className={styles.chartWrapper}>
-                            <DebtChart data={periodos} />
-                        </div>
+                                <StatusIndicator situacion={entidad.situacion} />
+                            </div>
+                        ))}
+                        {currentPeriod.entidades.length === 0 && (
+                            <p className={styles.subtitle} style={{ marginTop: '0.5rem' }}>Sin deudas en el último periodo reportado.</p>
+                        )}
                     </div>
                 </div>
             </div>
