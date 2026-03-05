@@ -2,6 +2,7 @@ import type { BCRAHistorialResponse, BCRAChequesResponse } from '../../services/
 import { DebtChart } from './DebtChart';
 import { InflowChart } from './InflowChart';
 import { StatusIndicator } from './StatusIndicator';
+import { InfoSection } from './InfoSection';
 import { AlertCircle, FileWarning, ShieldAlert } from 'lucide-react';
 import styles from './Dashboard.module.css';
 
@@ -111,6 +112,9 @@ export function Dashboard({ historial, cheques }: Props) {
                     </div>
                 </div>
             </div>
+
+            <InfoSection />
         </div>
     );
 }
+
