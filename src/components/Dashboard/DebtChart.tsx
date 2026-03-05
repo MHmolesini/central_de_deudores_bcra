@@ -74,13 +74,65 @@ export function DebtChart({ data }: Props) {
             formatter: (params: any) => {
                 let text = `<strong>${params[0].name}</strong><br/>`;
                 let total = 0;
+                let prevTotal = 0;
+
+                // dataIndex corresponds to the chronological order in our arrays
+                const currentIndex = params[0].dataIndex;
+                const prevIndex = currentIndex - 1;
+
                 params.forEach((p: any) => {
                     if (p.value > 0) {
-                        text += `${p.marker} <span style="font-size: 0.8em">${p.seriesName}</span>: $${p.value.toLocaleString('es-AR')}M<br/>`;
+                        // Find the previous value for this specific bank to calculate variation
+                        let prevValue = 0;
+                        if (prevIndex >= 0) {
+                            // Find the series data for the previous month
+                            const seriesData = series.find(s => s.name === p.seriesName);
+                            if (seriesData && seriesData.data[prevIndex]) {
+                                prevValue = seriesData.data[prevIndex];
+                            }
+                        }
+
+                        let variationStr = '';
+                        if (prevValue > 0) {
+                            const diff = p.value - prevValue;
+                            if (diff !== 0) {
+                                const pct = ((diff / prevValue) * 100).toFixed(1);
+                                // Red if debt grew, Green if debt lowered
+                                const color = diff > 0 ? '#ff4d4f' : '#50e3c2';
+                                const sign = diff > 0 ? '+' : '';
+                                variationStr = `<span style="color: ${color}; font-size: 0.85em; margin-left: 6px;">(${sign}${pct}%)</span>`;
+                            }
+                        } else if (prevIndex >= 0 && prevValue === 0) {
+                            // New debt
+                            variationStr = `<span style="color: #ff4d4f; font-size: 0.85em; margin-left: 6px;">(Nueva)</span>`;
+                        }
+
+                        text += `${p.marker} <span style="font-size: 0.8em">${p.seriesName}</span>: $${p.value.toLocaleString('es-AR')}M ${variationStr}<br/>`;
                         total += p.value;
                     }
                 });
-                text += `<hr style="border:0;border-top:1px solid rgba(255,255,255,0.1);margin:4px 0" /><strong>Total: $${total.toLocaleString('es-AR')}M</strong>`;
+
+                // Calculate total variation
+                if (prevIndex >= 0) {
+                    series.forEach(s => {
+                        if (s.data[prevIndex]) {
+                            prevTotal += s.data[prevIndex];
+                        }
+                    });
+                }
+
+                let totalVarStr = '';
+                if (prevTotal > 0) {
+                    const diffTotal = total - prevTotal;
+                    if (diffTotal !== 0) {
+                        const pctTotal = ((diffTotal / prevTotal) * 100).toFixed(1);
+                        const colorTotal = diffTotal > 0 ? '#ff4d4f' : '#50e3c2';
+                        const signTotal = diffTotal > 0 ? '+' : '';
+                        totalVarStr = `<span style="color: ${colorTotal}; font-size: 0.85em; margin-left: 6px;">(${signTotal}${pctTotal}%)</span>`;
+                    }
+                }
+
+                text += `<hr style="border:0;border-top:1px solid rgba(255,255,255,0.1);margin:4px 0" /><strong>Total: $${total.toLocaleString('es-AR')}M ${totalVarStr}</strong>`;
                 return text;
             }
         },
