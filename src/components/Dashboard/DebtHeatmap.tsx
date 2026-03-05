@@ -7,29 +7,32 @@ import styles from './Dashboard.module.css';
 
 interface Props {
     data: BCRAPeriodo[];
-    currency?: 'ARS' | 'USD';
+    currency?: 'ARS' | 'USD' | 'ARS_REAL';
     exchangeRates?: Record<string, number>;
+    inflationIndex?: Record<string, number>;
 }
 
-export function DebtHeatmap({ data, currency = 'ARS', exchangeRates = {} }: Props) {
+export function DebtHeatmap({ data, currency = 'ARS', exchangeRates = {}, inflationIndex = {} }: Props) {
     const [selectedBank, setSelectedBank] = useState<string>('all');
     const [isMenuOpen, setIsMenuOpen] = useState(false);
     const menuRef = useRef<HTMLDivElement>(null);
 
     const handleExport = () => {
+        const monthNamesFull = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
+        const yearList = heatmapData.yearList;
+
         const exportData = heatmapData.entries.map(entry => {
             const monthIdx = entry[0];
             const yearIdx = entry[1];
             const variation = entry[2];
-            const monthNames = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'];
-            const year = heatmapData.yearList[yearIdx];
+            const year = yearList[yearIdx];
 
             return {
                 'Año': year,
-                'Mes': monthNames[monthIdx],
+                'Mes': monthNamesFull[monthIdx],
                 'Entidad': selectedBank === 'all' ? 'Total' : selectedBank,
                 'Variación': variation,
-                'Moneda': currency === 'ARS' ? 'ARS (Miles)' : 'USD'
+                'Moneda': currency === 'ARS' ? 'ARS (Miles)' : (currency === 'USD' ? 'USD' : 'Pesos Reales')
             };
         });
 
@@ -56,71 +59,48 @@ export function DebtHeatmap({ data, currency = 'ARS', exchangeRates = {} }: Prop
 
     // Process data for the heatmap
     const heatmapData = useMemo(() => {
+        const sortedData = [...data].sort((a, b) => a.periodo.localeCompare(b.periodo));
         const years = new Set<string>();
-        const entries: [number, number, number][] = []; // [monthIndex, yearIndex, value]
+        const entries: [number, number, number][] = [];
 
-        const reversedData = [...data].reverse();
+        // Pre-convert relevant totals to compute variations
+        const monthlyTotals = sortedData.map(p => {
+            const totalArs = p.entidades
+                .filter(e => selectedBank === 'all' || e.entidad === selectedBank)
+                .reduce((acc, curr) => acc + curr.monto, 0);
 
-        // Find all years
-        reversedData.forEach(p => {
-            const year = p.periodo.substring(0, 4);
-            years.add(year);
+            if (currency === 'USD') {
+                const rate = exchangeRates[p.periodo] || exchangeRates[data[0].periodo] || 1;
+                return (totalArs * 1000) / rate;
+            } else if (currency === 'ARS_REAL') {
+                const latestIndex = inflationIndex[data[0].periodo] || 1;
+                const periodIndex = inflationIndex[p.periodo] || 1;
+                return totalArs * (latestIndex / periodIndex);
+            }
+            return totalArs;
         });
 
+        sortedData.forEach(p => years.add(p.periodo.substring(0, 4)));
         const yearList = Array.from(years).sort();
 
-        // Calculate variations
-        reversedData.forEach((period, pIdx) => {
+        sortedData.forEach((period, pIdx) => {
             const year = period.periodo.substring(0, 4);
             const month = period.periodo.substring(4, 6);
-
             const yearIdx = yearList.indexOf(year);
             const monthIdx = parseInt(month, 10) - 1;
 
             if (yearIdx === -1) return;
 
-            let currentVal = 0;
-            let prevVal = 0;
+            const currentTotal = monthlyTotals[pIdx];
+            const prevTotal = pIdx > 0 ? monthlyTotals[pIdx - 1] : currentTotal;
+            const variation = pIdx === 0 ? 0 : currentTotal - prevTotal;
 
-            if (selectedBank === 'all') {
-                // Total variation
-                currentVal = period.entidades.reduce((acc: number, e) => {
-                    const rate = exchangeRates[period.periodo] || 1;
-                    const val = currency === 'ARS' ? e.monto : (e.monto * 1000) / rate;
-                    return acc + val;
-                }, 0);
-
-                if (pIdx > 0) {
-                    const prevPeriod = reversedData[pIdx - 1];
-                    prevVal = prevPeriod.entidades.reduce((acc: number, e) => {
-                        const rate = exchangeRates[prevPeriod.periodo] || 1;
-                        const val = currency === 'ARS' ? e.monto : (e.monto * 1000) / rate;
-                        return acc + val;
-                    }, 0);
-                }
-            } else {
-                // Specific bank variation
-                const match = period.entidades.find(e => e.entidad === selectedBank);
-                const rawMonto = match ? match.monto : 0;
-                const rate = exchangeRates[period.periodo] || 1;
-                currentVal = currency === 'ARS' ? rawMonto : (rawMonto * 1000) / rate;
-
-                if (pIdx > 0) {
-                    const prevPeriod = reversedData[pIdx - 1];
-                    const prevMatch = prevPeriod.entidades.find(e => e.entidad === selectedBank);
-                    const prevRawMonto = prevMatch ? prevMatch.monto : 0;
-                    const prevRate = exchangeRates[prevPeriod.periodo] || 1;
-                    prevVal = currency === 'ARS' ? prevRawMonto : (prevRawMonto * 1000) / prevRate;
-                }
-            }
-
-            const variation = pIdx === 0 ? 0 : currentVal - prevVal;
             // ECharts heatmap expects [x, y, value]
             entries.push([monthIdx, yearIdx, Number(variation.toFixed(2))]);
         });
 
         return { entries, yearList };
-    }, [data, selectedBank, currency, exchangeRates]);
+    }, [data, selectedBank, currency, exchangeRates, inflationIndex]);
 
     const monthNames = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic'];
 
@@ -135,8 +115,8 @@ export function DebtHeatmap({ data, currency = 'ARS', exchangeRates = {} }: Prop
                 const year = heatmapData.yearList[params.data[1]];
                 const month = monthNames[params.data[0]];
                 const color = val > 0 ? '#ff4d4f' : (val < 0 ? '#50e3c2' : '#888');
-                const symbol = currency === 'ARS' ? '$' : 'USD ';
-                const suffix = currency === 'ARS' ? 'M' : '';
+                const symbol = currency === 'USD' ? 'USD ' : '$ ';
+                const suffix = currency === 'USD' ? '' : 'M';
                 const sign = val > 0 ? '+' : '';
 
                 return `<strong>${month} ${year}</strong><br/>` +

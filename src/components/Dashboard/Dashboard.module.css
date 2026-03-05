@@ -47,7 +47,7 @@
     top: 3px;
     bottom: 3px;
     left: 3px;
-    width: calc(50% - 3px);
+    width: calc(33.33% - 4px);
     border-radius: 9px;
     transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
     z-index: 0;
@@ -63,6 +63,12 @@
     transform: translateX(100%);
     background: linear-gradient(90deg, #ffffff 0%, #2ecc71 100%);
     box-shadow: 0 0 15px rgba(46, 204, 113, 0.3);
+}
+
+.slider.ars_real {
+    transform: translateX(200%);
+    background: linear-gradient(90deg, #2ecc71 0%, #0070f3 100%);
+    box-shadow: 0 0 15px rgba(0, 112, 243, 0.3);
 }
 
 .toggleBtn {

@@ -6,11 +6,12 @@ import { exportToExcel, formatPeriodLabel } from '../../utils/exportUtils';
 
 interface Props {
     data: BCRAPeriodo[];
-    currency?: 'ARS' | 'USD';
+    currency?: 'ARS' | 'USD' | 'ARS_REAL';
     exchangeRates?: Record<string, number>;
+    inflationIndex?: Record<string, number>;
 }
 
-export function DebtChart({ data, currency = 'ARS', exchangeRates = {} }: Props) {
+export function DebtChart({ data, currency = 'ARS', exchangeRates = {}, inflationIndex = {} }: Props) {
     const [viewMode, setViewMode] = useState<'amount' | 'percent'>('amount');
 
     const handleExport = () => {
@@ -56,9 +57,14 @@ export function DebtChart({ data, currency = 'ARS', exchangeRates = {} }: Props)
             const rate = exchangeRates[period.periodo] || 1;
 
             // Convertir monto si es necesario
-            const monto = currency === 'ARS'
-                ? rawMonto
-                : (rawMonto * 1000) / rate;
+            let monto = rawMonto;
+            if (currency === 'USD') {
+                monto = (rawMonto * 1000) / rate;
+            } else if (currency === 'ARS_REAL') {
+                const latestIndex = inflationIndex[data[0].periodo] || 1;
+                const periodIndex = inflationIndex[period.periodo] || 1;
+                monto = rawMonto * (latestIndex / periodIndex);
+            }
 
             const totalArs = periodTotals[pIdx];
             const pct = totalArs > 0 ? (rawMonto / totalArs) * 100 : 0;
@@ -152,10 +158,10 @@ export function DebtChart({ data, currency = 'ARS', exchangeRates = {} }: Props)
                         // Display both the absolute amount and the percentage of the whole
                         const pctStr = currentPct > 0 ? ` <span style="color: #888">(${currentPct.toFixed(1)}%)</span>` : '';
 
-                        text += `${p.marker} <span style="font-size: 0.8em">${p.seriesName}</span>: ${currency === 'ARS' ? '$' : 'USD '}${currentMonto.toLocaleString('es-AR', {
-                            minimumFractionDigits: currency === 'USD' ? 2 : 0,
-                            maximumFractionDigits: currency === 'USD' ? 2 : 0
-                        })}${currency === 'ARS' ? 'M' : ''}${pctStr} ${variationStr}<br/>`;
+                        text += `${p.marker} <span style="font-size: 0.8em">${p.seriesName}</span>: ${currency === 'USD' ? 'USD ' : '$ '}${currentMonto.toLocaleString('es-AR', {
+                            minimumFractionDigits: currency === 'ARS' ? 0 : 2,
+                            maximumFractionDigits: currency === 'ARS' ? 0 : 2
+                        })}${currency === 'USD' ? '' : 'M'}${pctStr} ${variationStr}<br/>`;
                         totalMonto += currentMonto;
                     }
                 });
@@ -179,10 +185,10 @@ export function DebtChart({ data, currency = 'ARS', exchangeRates = {} }: Props)
                     }
                 }
 
-                text += `<hr style="border:0;border-top:1px solid rgba(255,255,255,0.1);margin:4px 0" /><strong>Total Mes: ${currency === 'ARS' ? '$' : 'USD '}${totalMonto.toLocaleString('es-AR', {
-                    minimumFractionDigits: currency === 'USD' ? 2 : 0,
-                    maximumFractionDigits: currency === 'USD' ? 2 : 0
-                })}${currency === 'ARS' ? 'M' : ''} ${totalVarStr}</strong>`;
+                text += `<hr style="border:0;border-top:1px solid rgba(255,255,255,0.1);margin:4px 0" /><strong>Total Mes: ${currency === 'USD' ? 'USD ' : '$ '}${totalMonto.toLocaleString('es-AR', {
+                    minimumFractionDigits: currency === 'ARS' ? 0 : 2,
+                    maximumFractionDigits: currency === 'ARS' ? 0 : 2
+                })}${currency === 'USD' ? '' : 'M'} ${totalVarStr}</strong>`;
                 return text;
             }
         },
@@ -212,10 +218,10 @@ export function DebtChart({ data, currency = 'ARS', exchangeRates = {} }: Props)
                 color: '#a1a1aa',
                 formatter: (value: number) => {
                     if (viewMode === 'percent') return `${value}%`;
-                    const symbol = currency === 'ARS' ? '$' : 'USD ';
-                    const suffix = currency === 'ARS' ? 'M' : '';
+                    const symbol = currency === 'USD' ? 'USD ' : '$ ';
+                    const suffix = currency === 'USD' ? '' : 'M';
                     return `${symbol}${value.toLocaleString('es-AR', {
-                        maximumFractionDigits: currency === 'USD' ? 0 : 0 // Keep it clean for axis
+                        maximumFractionDigits: 0 // Keep it clean for axis
                     })}${suffix}`;
                 }
             },

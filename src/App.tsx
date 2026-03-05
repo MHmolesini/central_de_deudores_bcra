@@ -3,7 +3,7 @@ import { Header } from './components/Layout/Header';
 import { Footer } from './components/Layout/Footer';
 import { SearchForm } from './components/Search/SearchForm';
 import { Dashboard } from './components/Dashboard/Dashboard';
-import { fetchHistorialCrediticio, fetchChequesRechazados, fetchExchangeRates, type BCRAHistorialResponse, type BCRAChequesResponse } from './services/bcra';
+import { fetchHistorialCrediticio, fetchChequesRechazados, fetchExchangeRates, fetchInflationIndex, type BCRAHistorialResponse, type BCRAChequesResponse } from './services/bcra';
 import { processMonthlyExchangeRates } from './utils/exchangeUtils';
 import './App.css';
 
@@ -13,6 +13,7 @@ function App() {
   const [historial, setHistorial] = useState<BCRAHistorialResponse | null>(null);
   const [cheques, setCheques] = useState<BCRAChequesResponse | null>(null);
   const [exchangeRates, setExchangeRates] = useState<Record<string, number>>({});
+  const [inflationIndex, setInflationIndex] = useState<Record<string, number>>({});
 
   const handleSearch = async (cuit: string) => {
     setIsLoading(true);
@@ -32,15 +33,24 @@ function App() {
         setHistorial(historialData);
         setCheques(chequesData);
 
-        // Intentamos obtener tipos de cambio de forma independiente para no bloquear el dashboard
+        // Intentamos obtener tipos de cambio e índices de inflación de forma independiente
         try {
-          const exchangeData = await fetchExchangeRates();
+          const [exchangeData, inflationData] = await Promise.all([
+            fetchExchangeRates(),
+            fetchInflationIndex()
+          ]);
+
           if (exchangeData.results && exchangeData.results[0]?.detalle) {
             const processedRates = processMonthlyExchangeRates(exchangeData.results[0].detalle);
             setExchangeRates(processedRates);
           }
+
+          if (inflationData.results && inflationData.results[0]?.detalle) {
+            const processedInflation = processMonthlyExchangeRates(inflationData.results[0].detalle);
+            setInflationIndex(processedInflation);
+          }
         } catch (exErr) {
-          console.warn("No se pudieron cargar los tipos de cambio:", exErr);
+          console.warn("No se pudieron cargar los datos de variables financieras:", exErr);
         }
       }
     } catch (err) {
@@ -84,6 +94,7 @@ function App() {
               historial={historial}
               cheques={cheques}
               exchangeRates={exchangeRates}
+              inflationIndex={inflationIndex}
             />
           </div>
         )}

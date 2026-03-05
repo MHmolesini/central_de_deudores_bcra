@@ -6,11 +6,12 @@ import { exportToExcel, formatPeriodLabel } from '../../utils/exportUtils';
 
 interface Props {
     data: BCRAPeriodo[];
-    currency?: 'ARS' | 'USD';
+    currency?: 'ARS' | 'USD' | 'ARS_REAL';
     exchangeRates?: Record<string, number>;
+    inflationIndex?: Record<string, number>;
 }
 
-export function InflowChart({ data, currency = 'ARS', exchangeRates = {} }: Props) {
+export function InflowChart({ data, currency = 'ARS', exchangeRates = {}, inflationIndex = {} }: Props) {
     const [viewMode, setViewMode] = useState<'mensual' | 'acumulada'>('mensual');
 
     const handleExport = () => {
@@ -21,16 +22,31 @@ export function InflowChart({ data, currency = 'ARS', exchangeRates = {} }: Prop
             return banksList.map(bank => {
                 const match = period.entidades.find(e => e.entidad === bank);
                 const rawMonto = match ? match.monto : 0;
-                const rate = exchangeRates[period.periodo] || 1;
-                const currentVal = currency === 'ARS' ? rawMonto : (rawMonto * 1000) / rate;
+                let currentVal = rawMonto;
+                if (currency === 'USD') {
+                    const rate = exchangeRates[period.periodo] || exchangeRates[data[0].periodo] || 1;
+                    currentVal = (rawMonto * 1000) / rate;
+                } else if (currency === 'ARS_REAL') {
+                    const latestIndex = inflationIndex[data[0].periodo] || 1;
+                    const periodIndex = inflationIndex[period.periodo] || 1;
+                    currentVal = rawMonto * (latestIndex / periodIndex);
+                }
 
                 let prevVal = 0;
                 if (pIdx > 0) {
                     const prevPeriod = reversedData[pIdx - 1];
                     const prevMatch = prevPeriod.entidades.find(e => e.entidad === bank);
                     const prevRawMonto = prevMatch ? prevMatch.monto : 0;
-                    const prevRate = exchangeRates[prevPeriod.periodo] || 1;
-                    prevVal = currency === 'ARS' ? prevRawMonto : (prevRawMonto * 1000) / prevRate;
+
+                    prevVal = prevRawMonto;
+                    if (currency === 'USD') {
+                        const prevRate = exchangeRates[prevPeriod.periodo] || exchangeRates[data[0].periodo] || 1;
+                        prevVal = (prevRawMonto * 1000) / prevRate;
+                    } else if (currency === 'ARS_REAL') {
+                        const latestIndex = inflationIndex[data[0].periodo] || 1;
+                        const prevPeriodIndex = inflationIndex[prevPeriod.periodo] || 1;
+                        prevVal = prevRawMonto * (latestIndex / prevPeriodIndex);
+                    }
                 }
 
                 const variation = pIdx > 0 ? currentVal - prevVal : 0;
@@ -39,7 +55,7 @@ export function InflowChart({ data, currency = 'ARS', exchangeRates = {} }: Prop
                     'Periodo': formatPeriodLabel(period.periodo),
                     'Entidad': bank,
                     'Variación': variation,
-                    'Moneda': currency === 'ARS' ? 'ARS (Miles)' : 'USD'
+                    'Moneda': currency === 'ARS' ? 'ARS (Miles)' : (currency === 'USD' ? 'USD' : 'Pesos Reales')
                 };
             }).filter(row => row.Variación !== 0 || pIdx === 0);
         });
@@ -66,22 +82,31 @@ export function InflowChart({ data, currency = 'ARS', exchangeRates = {} }: Prop
         const dataPoints = reversedData.map((period, pIdx) => {
             const match = period.entidades.find((e) => e.entidad === bank);
             const rawMonto = match ? match.monto : 0;
-            const rate = exchangeRates[period.periodo] || 1;
 
-            const currentVal = currency === 'ARS'
-                ? rawMonto
-                : (rawMonto * 1000) / rate;
+            let currentVal = rawMonto;
+            if (currency === 'USD') {
+                const rate = exchangeRates[period.periodo] || exchangeRates[data[0].periodo] || 1;
+                currentVal = (rawMonto * 1000) / rate;
+            } else if (currency === 'ARS_REAL') {
+                const latestIndex = inflationIndex[data[0].periodo] || 1;
+                const periodIndex = inflationIndex[period.periodo] || 1;
+                currentVal = rawMonto * (latestIndex / periodIndex);
+            }
 
             let prevVal = 0;
             if (pIdx > 0) {
                 const prevPeriod = reversedData[pIdx - 1];
                 const prevMatch = prevPeriod.entidades.find((e) => e.entidad === bank);
                 const prevRawMonto = prevMatch ? prevMatch.monto : 0;
-                const prevRate = exchangeRates[prevPeriod.periodo] || 1;
-
-                prevVal = currency === 'ARS'
-                    ? prevRawMonto
-                    : (prevRawMonto * 1000) / prevRate;
+                prevVal = prevRawMonto;
+                if (currency === 'USD') {
+                    const prevRate = exchangeRates[prevPeriod.periodo] || exchangeRates[data[0].periodo] || 1;
+                    prevVal = (prevRawMonto * 1000) / prevRate;
+                } else if (currency === 'ARS_REAL') {
+                    const latestIndex = inflationIndex[data[0].periodo] || 1;
+                    const prevPeriodIndex = inflationIndex[prevPeriod.periodo] || 1;
+                    prevVal = prevRawMonto * (latestIndex / prevPeriodIndex);
+                }
             }
 
             const diff = pIdx > 0 ? currentVal - prevVal : 0;
@@ -139,8 +164,8 @@ export function InflowChart({ data, currency = 'ARS', exchangeRates = {} }: Prop
                     if (p.value !== 0) {
                         const color = p.value > 0 ? '#ff4d4f' : '#50e3c2'; // Red for debt increase, Green for debt decrease
                         const sign = p.value > 0 ? '+' : '';
-                        const symbol = currency === 'ARS' ? '$' : 'USD ';
-                        const suffix = currency === 'ARS' ? 'M' : '';
+                        const symbol = currency === 'USD' ? 'USD ' : '$ ';
+                        const suffix = currency === 'USD' ? '' : 'M';
                         text += `${p.marker} <span style="font-size: 0.8em">${p.seriesName}</span>: <span style="color:${color}">${symbol}${sign}${p.value.toLocaleString('es-AR', {
                             minimumFractionDigits: currency === 'USD' ? 2 : 0,
                             maximumFractionDigits: currency === 'USD' ? 2 : 0
@@ -152,8 +177,8 @@ export function InflowChart({ data, currency = 'ARS', exchangeRates = {} }: Prop
                 if (netChange !== 0) {
                     const totalColor = netChange > 0 ? '#ff4d4f' : '#50e3c2';
                     const totalSign = netChange > 0 ? '+' : '';
-                    const symbol = currency === 'ARS' ? '$' : 'USD ';
-                    const suffix = currency === 'ARS' ? 'M' : '';
+                    const symbol = currency === 'USD' ? 'USD ' : '$ ';
+                    const suffix = currency === 'USD' ? '' : 'M';
                     text += `<hr style="border:0;border-top:1px solid rgba(255,255,255,0.1);margin:4px 0" /><strong>${viewMode === 'acumulada' ? 'Total Acumulado' : 'Total Variación'}: <span style="color:${totalColor}">${symbol}${totalSign}${netChange.toLocaleString('es-AR', {
                         minimumFractionDigits: currency === 'USD' ? 2 : 0,
                         maximumFractionDigits: currency === 'USD' ? 2 : 0
@@ -187,10 +212,10 @@ export function InflowChart({ data, currency = 'ARS', exchangeRates = {} }: Prop
             axisLabel: {
                 color: '#a1a1aa',
                 formatter: (value: number) => {
-                    const symbol = currency === 'ARS' ? '$' : 'USD ';
-                    const suffix = currency === 'ARS' ? 'M' : '';
+                    const symbol = currency === 'USD' ? 'USD ' : '$ ';
+                    const suffix = currency === 'USD' ? '' : 'M';
                     return `${symbol}${value.toLocaleString('es-AR', {
-                        maximumFractionDigits: currency === 'USD' ? 0 : 0
+                        maximumFractionDigits: 0
                     })}${suffix}`;
                 }
             },

@@ -108,3 +108,14 @@ export async function fetchExchangeRates(): Promise<BCRAExchangeRateResponse> {
   }
   return res.json();
 }
+
+/**
+ * Obtiene el índice de inflación (Variable 30 - CER)
+ */
+export async function fetchInflationIndex(): Promise<BCRAExchangeRateResponse> {
+  const res = await fetch(getUrl(STATS_API_URL, '/30'));
+  if (!res.ok) {
+    throw new Error('Error fetching inflation index');
+  }
+  return res.json();
+}
