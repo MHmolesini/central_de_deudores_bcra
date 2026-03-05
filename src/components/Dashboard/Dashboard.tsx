@@ -1,5 +1,6 @@
 import type { BCRAHistorialResponse, BCRAChequesResponse } from '../../services/bcra';
 import { DebtChart } from './DebtChart';
+import { InflowChart } from './InflowChart';
 import { StatusIndicator } from './StatusIndicator';
 import { AlertCircle, FileWarning, ShieldAlert } from 'lucide-react';
 import styles from './Dashboard.module.css';
@@ -82,6 +83,13 @@ export function Dashboard({ historial, cheques }: Props) {
                     <h3>Evolución de Deuda (Últimos Meses)</h3>
                     <div className={styles.chartWrapper}>
                         <DebtChart data={periodos} />
+                    </div>
+                </div>
+
+                <div className={`${styles.card} ${styles.chartCard}`}>
+                    <h3>Variación Mensual (Inflows/Outflows)</h3>
+                    <div className={styles.chartWrapper}>
+                        <InflowChart data={periodos} />
                     </div>
                 </div>
 
