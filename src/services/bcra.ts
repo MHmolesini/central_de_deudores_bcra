@@ -26,8 +26,12 @@ export interface BCRAHistorialResponse {
   } | null;
 }
 
-// We'll use the vite proxy to avoid CORS
-const BASE_URL = '/api/CentralDeDeudores/v1.0/Deudas';
+// We'll use the vite proxy locally, but a public proxy for GitHub Pages
+const isProd = import.meta.env.PROD;
+const API_URL = 'https://api.bcra.gob.ar/CentralDeDeudores/v1.0/Deudas';
+const BASE_URL = isProd
+  ? `https://corsproxy.io/?${encodeURIComponent(API_URL)}`
+  : '/api/CentralDeDeudores/v1.0/Deudas';
 
 export async function fetchHistorialCrediticio(cuit: string): Promise<BCRAHistorialResponse> {
   // Fetch from the historic endpoint
