@@ -1,4 +1,5 @@
 import ReactECharts from 'echarts-for-react';
+import { useState } from 'react';
 import type { BCRAPeriodo } from '../../services/bcra';
 
 interface Props {
@@ -6,13 +7,19 @@ interface Props {
 }
 
 export function DebtChart({ data }: Props) {
+    const [viewMode, setViewMode] = useState<'amount' | 'percent'>('amount');
+
     // Extract periods and unique banks (entidades) to map series
     const periods = data.map((d) => d.periodo).reverse();
 
     const bankNames = new Set<string>();
     data.forEach((p) => p.entidades.forEach((e) => bankNames.add(e.entidad)));
-
     const banks = Array.from(bankNames);
+
+    // Calculate total per period to compute percentages
+    const periodTotals = [...data].reverse().map(period =>
+        period.entidades.reduce((acc, curr) => acc + curr.monto, 0)
+    );
 
     // Map data per bank
     const series = banks.map((bank, index) => {
@@ -25,9 +32,17 @@ export function DebtChart({ data }: Props) {
             '#ff9a9e'  // Pink
         ];
 
-        const dataPoints = [...data].reverse().map((period) => {
+        const dataPoints = [...data].reverse().map((period, pIdx) => {
             const match = period.entidades.find((e) => e.entidad === bank);
-            return match ? match.monto : 0;
+            const monto = match ? match.monto : 0;
+            const total = periodTotals[pIdx];
+            const pct = total > 0 ? (monto / total) * 100 : 0;
+
+            return {
+                value: viewMode === 'percent' ? pct : monto,
+                monto: monto,
+                pct: pct
+            };
         });
 
         return {
@@ -64,7 +79,6 @@ export function DebtChart({ data }: Props) {
     });
 
     // Calculate dynamic bottom padding based on the number of banks in the legend.
-    // Assuming each row of the legend takes roughly ~30px and can fit ~2-3 items on average.
     const legendRows = Math.ceil(banks.length / 2);
     const dynamicBottom = `${Math.max(15, 10 + (legendRows * 4))}%`;
 
@@ -78,66 +92,66 @@ export function DebtChart({ data }: Props) {
             textStyle: { color: '#ededed' },
             formatter: (params: any) => {
                 let text = `<strong>${params[0].name}</strong><br/>`;
-                let total = 0;
-                let prevTotal = 0;
+                let totalMonto = 0;
+                let prevTotalMonto = 0;
 
-                // dataIndex corresponds to the chronological order in our arrays
                 const currentIndex = params[0].dataIndex;
                 const prevIndex = currentIndex - 1;
 
                 params.forEach((p: any) => {
-                    if (p.value > 0) {
-                        // Find the previous value for this specific bank to calculate variation
-                        let prevValue = 0;
+                    const currentMonto = p.data.monto;
+                    const currentPct = p.data.pct;
+
+                    if (currentMonto > 0) {
+                        let prevMonto = 0;
                         if (prevIndex >= 0) {
-                            // Find the series data for the previous month
                             const seriesData = series.find(s => s.name === p.seriesName);
                             if (seriesData && seriesData.data[prevIndex]) {
-                                prevValue = seriesData.data[prevIndex];
+                                prevMonto = seriesData.data[prevIndex].monto;
                             }
                         }
 
                         let variationStr = '';
-                        if (prevValue > 0) {
-                            const diff = p.value - prevValue;
+                        if (prevMonto > 0) {
+                            const diff = currentMonto - prevMonto;
                             if (diff !== 0) {
-                                const pct = ((diff / prevValue) * 100).toFixed(1);
-                                // Red if debt grew, Green if debt lowered
+                                const pctChange = ((diff / prevMonto) * 100).toFixed(1);
                                 const color = diff > 0 ? '#ff4d4f' : '#50e3c2';
                                 const sign = diff > 0 ? '+' : '';
-                                variationStr = `<span style="color: ${color}; font-size: 0.85em; margin-left: 6px;">(${sign}${pct}%)</span>`;
+                                variationStr = `<span style="color: ${color}; font-size: 0.85em; margin-left: 6px;">(${sign}${pctChange}%)</span>`;
                             }
-                        } else if (prevIndex >= 0 && prevValue === 0) {
-                            // New debt
+                        } else if (prevIndex >= 0 && prevMonto === 0) {
                             variationStr = `<span style="color: #ff4d4f; font-size: 0.85em; margin-left: 6px;">(Nueva)</span>`;
                         }
 
-                        text += `${p.marker} <span style="font-size: 0.8em">${p.seriesName}</span>: $${p.value.toLocaleString('es-AR')}M ${variationStr}<br/>`;
-                        total += p.value;
+                        // Display both the absolute amount and the percentage of the whole
+                        const pctStr = currentPct > 0 ? ` <span style="color: #888">(${currentPct.toFixed(1)}%)</span>` : '';
+
+                        text += `${p.marker} <span style="font-size: 0.8em">${p.seriesName}</span>: $${currentMonto.toLocaleString('es-AR')}M${pctStr} ${variationStr}<br/>`;
+                        totalMonto += currentMonto;
                     }
                 });
 
-                // Calculate total variation
                 if (prevIndex >= 0) {
                     series.forEach(s => {
                         if (s.data[prevIndex]) {
-                            prevTotal += s.data[prevIndex];
+                            prevTotalMonto += s.data[prevIndex].monto;
                         }
                     });
                 }
 
                 let totalVarStr = '';
-                if (prevTotal > 0) {
-                    const diffTotal = total - prevTotal;
+                if (prevTotalMonto > 0) {
+                    const diffTotal = totalMonto - prevTotalMonto;
                     if (diffTotal !== 0) {
-                        const pctTotal = ((diffTotal / prevTotal) * 100).toFixed(1);
+                        const pctTotal = ((diffTotal / prevTotalMonto) * 100).toFixed(1);
                         const colorTotal = diffTotal > 0 ? '#ff4d4f' : '#50e3c2';
                         const signTotal = diffTotal > 0 ? '+' : '';
                         totalVarStr = `<span style="color: ${colorTotal}; font-size: 0.85em; margin-left: 6px;">(${signTotal}${pctTotal}%)</span>`;
                     }
                 }
 
-                text += `<hr style="border:0;border-top:1px solid rgba(255,255,255,0.1);margin:4px 0" /><strong>Total: $${total.toLocaleString('es-AR')}M ${totalVarStr}</strong>`;
+                text += `<hr style="border:0;border-top:1px solid rgba(255,255,255,0.1);margin:4px 0" /><strong>Total Mes: $${totalMonto.toLocaleString('es-AR')}M ${totalVarStr}</strong>`;
                 return text;
             }
         },
@@ -162,25 +176,66 @@ export function DebtChart({ data }: Props) {
         },
         yAxis: {
             type: 'value',
+            max: viewMode === 'percent' ? 100 : undefined,
             axisLabel: {
                 color: '#a1a1aa',
-                formatter: (value: number) => `$${value.toLocaleString('es-AR')}M`
+                formatter: (value: number) => viewMode === 'percent' ? `${value}%` : `$${value.toLocaleString('es-AR')}M`
             },
             splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)', type: 'dashed' } }
         },
         series: series
     };
 
-    // Calculate dynamic height to ensure chart doesn't get squished
     const chartHeight = Math.max(480, 400 + (legendRows * 20));
 
     return (
-        <div style={{ height: `${chartHeight}px`, width: '100%' }}>
-            <ReactECharts
-                option={options}
-                style={{ height: '100%', width: '100%' }}
-                opts={{ renderer: 'canvas' }}
-            />
+        <div style={{ width: '100%' }}>
+            {/* Toggle Container */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px', paddingRight: '10px' }}>
+                <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '6px', padding: '2px', display: 'flex', gap: '4px' }}>
+                    <button
+                        onClick={() => setViewMode('amount')}
+                        style={{
+                            background: viewMode === 'amount' ? 'rgba(255,255,255,0.1)' : 'transparent',
+                            border: 'none',
+                            color: viewMode === 'amount' ? '#fff' : '#a1a1aa',
+                            padding: '4px 12px',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontSize: '0.85rem',
+                            transition: 'all 0.2s',
+                            fontWeight: viewMode === 'amount' ? '600' : 'normal'
+                        }}
+                    >
+                        Monto
+                    </button>
+                    <button
+                        onClick={() => setViewMode('percent')}
+                        style={{
+                            background: viewMode === 'percent' ? 'rgba(255,255,255,0.1)' : 'transparent',
+                            border: 'none',
+                            color: viewMode === 'percent' ? '#fff' : '#a1a1aa',
+                            padding: '4px 12px',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontSize: '0.85rem',
+                            transition: 'all 0.2s',
+                            fontWeight: viewMode === 'percent' ? '600' : 'normal'
+                        }}
+                    >
+                        % Peso
+                    </button>
+                </div>
+            </div>
+
+            {/* Chart Container */}
+            <div style={{ height: `${chartHeight}px`, width: '100%' }}>
+                <ReactECharts
+                    option={options}
+                    style={{ height: '100%', width: '100%' }}
+                    opts={{ renderer: 'canvas' }}
+                />
+            </div>
         </div>
     );
 }
