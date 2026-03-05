@@ -63,6 +63,11 @@ export function DebtChart({ data }: Props) {
         return p;
     });
 
+    // Calculate dynamic bottom padding based on the number of banks in the legend.
+    // Assuming each row of the legend takes roughly ~30px and can fit ~2-3 items on average.
+    const legendRows = Math.ceil(banks.length / 2);
+    const dynamicBottom = `${Math.max(15, 10 + (legendRows * 4))}%`;
+
     const options = {
         backgroundColor: 'transparent',
         tooltip: {
@@ -145,7 +150,7 @@ export function DebtChart({ data }: Props) {
         grid: {
             left: '3%',
             right: '4%',
-            bottom: '15%',
+            bottom: dynamicBottom,
             top: '5%',
             containLabel: true
         },
@@ -166,8 +171,11 @@ export function DebtChart({ data }: Props) {
         series: series
     };
 
+    // Calculate dynamic height to ensure chart doesn't get squished
+    const chartHeight = Math.max(480, 400 + (legendRows * 20));
+
     return (
-        <div style={{ height: '480px', width: '100%' }}>
+        <div style={{ height: `${chartHeight}px`, width: '100%' }}>
             <ReactECharts
                 option={options}
                 style={{ height: '100%', width: '100%' }}
