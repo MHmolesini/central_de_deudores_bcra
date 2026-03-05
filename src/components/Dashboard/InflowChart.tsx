@@ -4,9 +4,11 @@ import type { BCRAPeriodo } from '../../services/bcra';
 
 interface Props {
     data: BCRAPeriodo[];
+    currency?: 'ARS' | 'USD';
+    exchangeRates?: Record<string, number>;
 }
 
-export function InflowChart({ data }: Props) {
+export function InflowChart({ data, currency = 'ARS', exchangeRates = {} }: Props) {
     const [viewMode, setViewMode] = useState<'mensual' | 'acumulada'>('mensual');
 
     // Extract periods and unique banks (entidades) to map series
@@ -27,16 +29,27 @@ export function InflowChart({ data }: Props) {
         let accumulated = 0;
         const dataPoints = reversedData.map((period, pIdx) => {
             const match = period.entidades.find((e) => e.entidad === bank);
-            const currentMonto = match ? match.monto : 0;
+            const rawMonto = match ? match.monto : 0;
+            const rate = exchangeRates[period.periodo] || 1;
 
-            let prevMonto = 0;
+            const currentVal = currency === 'ARS'
+                ? rawMonto
+                : (rawMonto * 1000) / rate;
+
+            let prevVal = 0;
             if (pIdx > 0) {
-                const prevMatch = reversedData[pIdx - 1].entidades.find((e) => e.entidad === bank);
-                prevMonto = prevMatch ? prevMatch.monto : 0;
+                const prevPeriod = reversedData[pIdx - 1];
+                const prevMatch = prevPeriod.entidades.find((e) => e.entidad === bank);
+                const prevRawMonto = prevMatch ? prevMatch.monto : 0;
+                const prevRate = exchangeRates[prevPeriod.periodo] || 1;
+
+                prevVal = currency === 'ARS'
+                    ? prevRawMonto
+                    : (prevRawMonto * 1000) / prevRate;
             }
 
-            const diff = pIdx > 0 ? currentMonto - prevMonto : 0;
-            accumulated = pIdx === 0 ? currentMonto : accumulated + diff;
+            const diff = pIdx > 0 ? currentVal - prevVal : 0;
+            accumulated = pIdx === 0 ? currentVal : accumulated + diff;
 
             return viewMode === 'acumulada' ? accumulated : diff;
         });
@@ -90,7 +103,12 @@ export function InflowChart({ data }: Props) {
                     if (p.value !== 0) {
                         const color = p.value > 0 ? '#ff4d4f' : '#50e3c2'; // Red for debt increase, Green for debt decrease
                         const sign = p.value > 0 ? '+' : '';
-                        text += `${p.marker} <span style="font-size: 0.8em">${p.seriesName}</span>: <span style="color:${color}">$${sign}${p.value.toLocaleString('es-AR')}M</span><br/>`;
+                        const symbol = currency === 'ARS' ? '$' : 'USD ';
+                        const suffix = currency === 'ARS' ? 'M' : '';
+                        text += `${p.marker} <span style="font-size: 0.8em">${p.seriesName}</span>: <span style="color:${color}">${symbol}${sign}${p.value.toLocaleString('es-AR', {
+                            minimumFractionDigits: currency === 'USD' ? 2 : 0,
+                            maximumFractionDigits: currency === 'USD' ? 2 : 0
+                        })}${suffix}</span><br/>`;
                         netChange += p.value;
                     }
                 });
@@ -98,7 +116,12 @@ export function InflowChart({ data }: Props) {
                 if (netChange !== 0) {
                     const totalColor = netChange > 0 ? '#ff4d4f' : '#50e3c2';
                     const totalSign = netChange > 0 ? '+' : '';
-                    text += `<hr style="border:0;border-top:1px solid rgba(255,255,255,0.1);margin:4px 0" /><strong>${viewMode === 'acumulada' ? 'Total Acumulado' : 'Total Variación'}: <span style="color:${totalColor}">$${totalSign}${netChange.toLocaleString('es-AR')}M</span></strong>`;
+                    const symbol = currency === 'ARS' ? '$' : 'USD ';
+                    const suffix = currency === 'ARS' ? 'M' : '';
+                    text += `<hr style="border:0;border-top:1px solid rgba(255,255,255,0.1);margin:4px 0" /><strong>${viewMode === 'acumulada' ? 'Total Acumulado' : 'Total Variación'}: <span style="color:${totalColor}">${symbol}${totalSign}${netChange.toLocaleString('es-AR', {
+                        minimumFractionDigits: currency === 'USD' ? 2 : 0,
+                        maximumFractionDigits: currency === 'USD' ? 2 : 0
+                    })}${suffix}</span></strong>`;
                 }
 
                 return text;
@@ -127,7 +150,13 @@ export function InflowChart({ data }: Props) {
             type: 'value',
             axisLabel: {
                 color: '#a1a1aa',
-                formatter: (value: number) => `$${value.toLocaleString('es-AR')}M`
+                formatter: (value: number) => {
+                    const symbol = currency === 'ARS' ? '$' : 'USD ';
+                    const suffix = currency === 'ARS' ? 'M' : '';
+                    return `${symbol}${value.toLocaleString('es-AR', {
+                        maximumFractionDigits: currency === 'USD' ? 0 : 0
+                    })}${suffix}`;
+                }
             },
             splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)', type: 'dashed' } }
         },

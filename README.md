@@ -10,7 +10,8 @@ Un visualizador moderno y profesional para la consulta de información en la **C
 ## ✨ Características Principales
 
 - 🔍 **Consulta Instantánea:** Búsqueda por CUIT/CUIL para obtener el historial crediticio consolidado.
-- 📊 **Visualización Dinámica:** Gráficos de evolución de deuda y flujo de fondos (inflows/outflows) utilizando **Apache ECharts**.
+- 💵 **Multimoneda (ARS/USD):** Conversión automática de deudas a dólares utilizando los tipos de cambio históricos oficiales del BCRA.
+- 📊 **Visualización Dinámica:** Gráficos de evolución de deuda y flujo de fondos (inflows/outflows) en ambas monedas utilizando **Apache ECharts**.
 - 🏦 **Detalle por Entidad:** Desglose de deuda y situación actual para cada entidad financiera informante.
 - 🚫 **Información Especial:** Detección de procesos judiciales, deudas en revisión y cheques rechazados.
 - 📱 **Diseño Premium & Responsive:** Interfaz moderna con estética "Glassmorphism" y modo oscuro refinado, optimizada para todos los dispositivos.

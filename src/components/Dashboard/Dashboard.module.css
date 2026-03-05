@@ -26,6 +26,76 @@
     display: flex;
     flex-direction: column;
     align-items: flex-end;
+    gap: 0.5rem;
+}
+
+.currencyToggle {
+    position: relative;
+    display: flex;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 3px;
+    border-radius: 12px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    margin-bottom: 0.5rem;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    width: fit-content;
+}
+
+.slider {
+    position: absolute;
+    top: 3px;
+    bottom: 3px;
+    left: 3px;
+    width: calc(50% - 3px);
+    border-radius: 9px;
+    transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 0;
+}
+
+.slider.ars {
+    transform: translateX(0);
+    background: linear-gradient(90deg, #ff8c00 0%, #ffffff 100%);
+    box-shadow: 0 0 15px rgba(255, 140, 0, 0.3);
+}
+
+.slider.usd {
+    transform: translateX(100%);
+    background: linear-gradient(90deg, #ffffff 0%, #2ecc71 100%);
+    box-shadow: 0 0 15px rgba(46, 204, 113, 0.3);
+}
+
+.toggleBtn {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    padding: 8px 16px;
+    border: none;
+    background: transparent;
+    color: var(--text-color);
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    transition: color 0.3s ease;
+    z-index: 1;
+    min-width: 80px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.toggleBtn.active {
+    color: #1a1a1a;
+    /* Texto oscuro para contraste sobre degradado claro */
+}
+
+.toggleBtn:not(.active) {
+    opacity: 0.6;
+}
+
+.toggleBtn:not(.active):hover {
+    opacity: 1;
 }
 
 .headerRightSubtitle {

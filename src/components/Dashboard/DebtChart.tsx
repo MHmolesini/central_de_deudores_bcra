@@ -4,9 +4,11 @@ import type { BCRAPeriodo } from '../../services/bcra';
 
 interface Props {
     data: BCRAPeriodo[];
+    currency?: 'ARS' | 'USD';
+    exchangeRates?: Record<string, number>;
 }
 
-export function DebtChart({ data }: Props) {
+export function DebtChart({ data, currency = 'ARS', exchangeRates = {} }: Props) {
     const [viewMode, setViewMode] = useState<'amount' | 'percent'>('amount');
 
     // Extract periods and unique banks (entidades) to map series
@@ -34,9 +36,16 @@ export function DebtChart({ data }: Props) {
 
         const dataPoints = [...data].reverse().map((period, pIdx) => {
             const match = period.entidades.find((e) => e.entidad === bank);
-            const monto = match ? match.monto : 0;
-            const total = periodTotals[pIdx];
-            const pct = total > 0 ? (monto / total) * 100 : 0;
+            const rawMonto = match ? match.monto : 0;
+            const rate = exchangeRates[period.periodo] || 1;
+
+            // Convertir monto si es necesario
+            const monto = currency === 'ARS'
+                ? rawMonto
+                : (rawMonto * 1000) / rate;
+
+            const totalArs = periodTotals[pIdx];
+            const pct = totalArs > 0 ? (rawMonto / totalArs) * 100 : 0;
 
             return {
                 value: viewMode === 'percent' ? pct : monto,
@@ -127,7 +136,10 @@ export function DebtChart({ data }: Props) {
                         // Display both the absolute amount and the percentage of the whole
                         const pctStr = currentPct > 0 ? ` <span style="color: #888">(${currentPct.toFixed(1)}%)</span>` : '';
 
-                        text += `${p.marker} <span style="font-size: 0.8em">${p.seriesName}</span>: $${currentMonto.toLocaleString('es-AR')}M${pctStr} ${variationStr}<br/>`;
+                        text += `${p.marker} <span style="font-size: 0.8em">${p.seriesName}</span>: ${currency === 'ARS' ? '$' : 'USD '}${currentMonto.toLocaleString('es-AR', {
+                            minimumFractionDigits: currency === 'USD' ? 2 : 0,
+                            maximumFractionDigits: currency === 'USD' ? 2 : 0
+                        })}${currency === 'ARS' ? 'M' : ''}${pctStr} ${variationStr}<br/>`;
                         totalMonto += currentMonto;
                     }
                 });
@@ -151,7 +163,10 @@ export function DebtChart({ data }: Props) {
                     }
                 }
 
-                text += `<hr style="border:0;border-top:1px solid rgba(255,255,255,0.1);margin:4px 0" /><strong>Total Mes: $${totalMonto.toLocaleString('es-AR')}M ${totalVarStr}</strong>`;
+                text += `<hr style="border:0;border-top:1px solid rgba(255,255,255,0.1);margin:4px 0" /><strong>Total Mes: ${currency === 'ARS' ? '$' : 'USD '}${totalMonto.toLocaleString('es-AR', {
+                    minimumFractionDigits: currency === 'USD' ? 2 : 0,
+                    maximumFractionDigits: currency === 'USD' ? 2 : 0
+                })}${currency === 'ARS' ? 'M' : ''} ${totalVarStr}</strong>`;
                 return text;
             }
         },
@@ -179,7 +194,14 @@ export function DebtChart({ data }: Props) {
             max: viewMode === 'percent' ? 100 : undefined,
             axisLabel: {
                 color: '#a1a1aa',
-                formatter: (value: number) => viewMode === 'percent' ? `${value}%` : `$${value.toLocaleString('es-AR')}M`
+                formatter: (value: number) => {
+                    if (viewMode === 'percent') return `${value}%`;
+                    const symbol = currency === 'ARS' ? '$' : 'USD ';
+                    const suffix = currency === 'ARS' ? 'M' : '';
+                    return `${symbol}${value.toLocaleString('es-AR', {
+                        maximumFractionDigits: currency === 'USD' ? 0 : 0 // Keep it clean for axis
+                    })}${suffix}`;
+                }
             },
             splitLine: { lineStyle: { color: 'rgba(255,255,255,0.05)', type: 'dashed' } }
         },

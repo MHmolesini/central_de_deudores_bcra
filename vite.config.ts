@@ -7,10 +7,10 @@ export default defineConfig({
   base: '/central_de_deudores_bcra/',
   server: {
     proxy: {
-      '/api': {
+      '/bcra-api': {
         target: 'https://api.bcra.gob.ar',
         changeOrigin: true,
-        rewrite: (path) => path.replace(/^\/api/, '')
+        rewrite: (path) => path.replace(/^\/bcra-api/, '')
       }
     }
   }

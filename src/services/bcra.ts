@@ -28,14 +28,22 @@ export interface BCRAHistorialResponse {
 
 // We'll use the vite proxy locally, but a public proxy for GitHub Pages
 const isProd = import.meta.env.PROD;
-const API_URL = 'https://api.bcra.gob.ar/CentralDeDeudores/v1.0/Deudas';
-const BASE_URL = isProd
-  ? `https://corsproxy.io/?${encodeURIComponent(API_URL)}`
-  : '/api/CentralDeDeudores/v1.0/Deudas';
+const DEUDAS_API_URL = 'https://api.bcra.gob.ar/CentralDeDeudores/v1.0/Deudas';
+const STATS_API_URL = 'https://api.bcra.gob.ar/estadisticas/v4.0/Monetarias';
+
+const getUrl = (baseUrl: string, path: string) => {
+  const fullUrl = `${baseUrl}${path}`;
+  if (isProd) {
+    return `https://corsproxy.io/?${encodeURIComponent(fullUrl)}`;
+  }
+  // Reemplazamos la base de la API por el prefijo configurado en Vite
+  return fullUrl.replace('https://api.bcra.gob.ar', '/bcra-api');
+};
 
 export async function fetchHistorialCrediticio(cuit: string): Promise<BCRAHistorialResponse> {
+  const baseDeudas = DEUDAS_API_URL;
   // Fetch from the historic endpoint
-  const res = await fetch(`${BASE_URL}/Historicas/${cuit}`);
+  const res = await fetch(getUrl(baseDeudas, `/Historicas/${cuit}`));
   if (!res.ok) {
     if (res.status === 404) {
       return { status: 404, results: null };
@@ -46,7 +54,7 @@ export async function fetchHistorialCrediticio(cuit: string): Promise<BCRAHistor
 
   // Also try to fetch the current one (might have a more recent month)
   try {
-    const currentRes = await fetch(`${BASE_URL}/${cuit}`);
+    const currentRes = await fetch(getUrl(baseDeudas, `/${cuit}`));
     if (currentRes.ok) {
       const currentData: BCRAHistorialResponse = await currentRes.json();
 
@@ -78,4 +86,25 @@ export interface BCRAChequesResponse {
 export async function fetchChequesRechazados(_cuit: string): Promise<BCRAChequesResponse | null> {
   // Use _cuit to bypass unused variable warning for now
   return null;
+}
+
+export interface BCRAExchangeRate {
+  fecha: string;
+  valor: number;
+}
+
+export interface BCRAExchangeRateResponse {
+  status: number;
+  results: {
+    idVariable: number;
+    detalle: BCRAExchangeRate[];
+  }[];
+}
+
+export async function fetchExchangeRates(): Promise<BCRAExchangeRateResponse> {
+  const res = await fetch(getUrl(STATS_API_URL, '/5'));
+  if (!res.ok) {
+    throw new Error('Error fetching exchange rates');
+  }
+  return res.json();
 }

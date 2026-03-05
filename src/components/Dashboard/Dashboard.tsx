@@ -1,17 +1,20 @@
+import { useState } from 'react';
 import type { BCRAHistorialResponse, BCRAChequesResponse } from '../../services/bcra';
 import { DebtChart } from './DebtChart';
 import { InflowChart } from './InflowChart';
 import { StatusIndicator } from './StatusIndicator';
 import { InfoSection } from './InfoSection';
-import { AlertCircle, FileWarning, ShieldAlert } from 'lucide-react';
+import { AlertCircle, FileWarning, ShieldAlert, DollarSign, Coins } from 'lucide-react';
 import styles from './Dashboard.module.css';
 
 interface Props {
     historial: BCRAHistorialResponse | null;
     cheques: BCRAChequesResponse | null;
+    exchangeRates: Record<string, number>;
 }
 
-export function Dashboard({ historial, cheques }: Props) {
+export function Dashboard({ historial, cheques, exchangeRates }: Props) {
+    const [currency, setCurrency] = useState<'ARS' | 'USD'>('ARS');
     if (!historial || !historial.results) return null;
 
     const { denominacion, identificacion, periodos } = historial.results;
@@ -29,7 +32,18 @@ export function Dashboard({ historial, cheques }: Props) {
 
     // Aggregate data for the summary cards
     const currentPeriod = periodos[0];
+    const rate = exchangeRates[currentPeriod.periodo] || 1;
+
+    // Función para convertir ARS (miles) a la moneda seleccionada
+    const formatValue = (montoArsMiles: number) => {
+        if (currency === 'ARS') return montoArsMiles;
+        // Monto en miles de pesos / TC = USD
+        // Ejemplo: 2.745 (miles) * 1000 = 2.745.000 ARS / 1400 TC = 1.960 USD
+        return (montoArsMiles * 1000) / rate;
+    };
+
     const totalDebt = currentPeriod?.entidades.reduce((acc, curr) => acc + curr.monto, 0) || 0;
+    const totalDebtDisplay = formatValue(totalDebt);
 
     // Formatear periodo YYYYMM
     let periodoStr = currentPeriod.periodo;
@@ -72,9 +86,29 @@ export function Dashboard({ historial, cheques }: Props) {
                 </div>
 
                 <div className={styles.headerRight}>
+                    <div className={styles.currencyToggle}>
+                        <div className={`${styles.slider} ${currency === 'ARS' ? styles.ars : styles.usd}`} />
+                        <button
+                            className={`${styles.toggleBtn} ${currency === 'ARS' ? styles.active : ''}`}
+                            onClick={() => setCurrency('ARS')}
+                        >
+                            <Coins size={14} /> ARS
+                        </button>
+                        <button
+                            className={`${styles.toggleBtn} ${currency === 'USD' ? styles.active : ''}`}
+                            onClick={() => setCurrency('USD')}
+                        >
+                            <DollarSign size={14} /> USD
+                        </button>
+                    </div>
                     <p className={styles.headerRightSubtitle}>Deuda Total ({periodoStr})</p>
                     <p className={styles.amount}>
-                        ${totalDebt.toLocaleString('es-AR')}M
+                        {currency === 'ARS' ? '$' : 'USD '}
+                        {totalDebtDisplay.toLocaleString('es-AR', {
+                            minimumFractionDigits: currency === 'USD' ? 2 : 0,
+                            maximumFractionDigits: currency === 'USD' ? 2 : 0
+                        })}
+                        {currency === 'ARS' ? 'M' : ''}
                     </p>
                 </div>
             </header>
@@ -83,14 +117,14 @@ export function Dashboard({ historial, cheques }: Props) {
                 <div className={`${styles.card} ${styles.chartCard}`}>
                     <h3>Evolución de Deuda (Últimos Meses)</h3>
                     <div className={styles.chartWrapper}>
-                        <DebtChart data={periodos} />
+                        <DebtChart data={periodos} currency={currency} exchangeRates={exchangeRates} />
                     </div>
                 </div>
 
                 <div className={`${styles.card} ${styles.chartCard}`}>
                     <h3>Variación Mensual (Inflows/Outflows)</h3>
                     <div className={styles.chartWrapper}>
-                        <InflowChart data={periodos} />
+                        <InflowChart data={periodos} currency={currency} exchangeRates={exchangeRates} />
                     </div>
                 </div>
 
@@ -101,7 +135,14 @@ export function Dashboard({ historial, cheques }: Props) {
                             <div key={idx} className={styles.entityRow}>
                                 <div className={styles.entityInfo}>
                                     <span className={styles.entityName}>{entidad.entidad}</span>
-                                    <span className={styles.entityAmount}>${entidad.monto.toLocaleString('es-AR')}M</span>
+                                    <span className={styles.entityAmount}>
+                                        {currency === 'ARS' ? '$' : 'USD '}
+                                        {formatValue(entidad.monto).toLocaleString('es-AR', {
+                                            minimumFractionDigits: currency === 'USD' ? 2 : 0,
+                                            maximumFractionDigits: currency === 'USD' ? 2 : 0
+                                        })}
+                                        {currency === 'ARS' ? 'M' : ''}
+                                    </span>
                                 </div>
                                 <StatusIndicator situacion={entidad.situacion} />
                             </div>
@@ -117,4 +158,5 @@ export function Dashboard({ historial, cheques }: Props) {
         </div>
     );
 }
+
 
