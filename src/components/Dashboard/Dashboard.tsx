@@ -2,9 +2,10 @@ import { useState } from 'react';
 import type { BCRAHistorialResponse, BCRAChequesResponse } from '../../services/bcra';
 import { DebtChart } from './DebtChart';
 import { InflowChart } from './InflowChart';
+import { DebtHeatmap } from './DebtHeatmap';
 import { StatusIndicator } from './StatusIndicator';
 import { InfoSection } from './InfoSection';
-import { AlertCircle, FileWarning, ShieldAlert, DollarSign, Coins } from 'lucide-react';
+import { AlertCircle, FileWarning, ShieldAlert, DollarSign, Coins, ArrowLeftRight } from 'lucide-react';
 import styles from './Dashboard.module.css';
 
 interface Props {
@@ -122,10 +123,20 @@ export function Dashboard({ historial, cheques, exchangeRates }: Props) {
                 </div>
 
                 <div className={`${styles.card} ${styles.chartCard}`}>
-                    <h3>Variación Mensual (Inflows/Outflows)</h3>
+                    <div className={styles.chartHeader}>
+                        <ArrowLeftRight size={20} className={styles.secondaryIcon} />
+                        <div>
+                            <h3 className={styles.cardTitle}>Flujo de Fondos Mensual</h3>
+                            <p className={styles.cardSubtitle}>Inflow vs Outflow por periodo</p>
+                        </div>
+                    </div>
                     <div className={styles.chartWrapper}>
                         <InflowChart data={periodos} currency={currency} exchangeRates={exchangeRates} />
                     </div>
+                </div>
+
+                <div className={styles.card}>
+                    <DebtHeatmap data={periodos} currency={currency} exchangeRates={exchangeRates} />
                 </div>
 
                 <div className={`${styles.card} ${styles.entitiesCard}`}>
