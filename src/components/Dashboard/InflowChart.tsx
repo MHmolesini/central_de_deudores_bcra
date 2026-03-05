@@ -1,4 +1,5 @@
 import ReactECharts from 'echarts-for-react';
+import { useState } from 'react';
 import type { BCRAPeriodo } from '../../services/bcra';
 
 interface Props {
@@ -6,15 +7,14 @@ interface Props {
 }
 
 export function InflowChart({ data }: Props) {
+    const [viewMode, setViewMode] = useState<'mensual' | 'acumulada'>('mensual');
+
     // Extract periods and unique banks (entidades) to map series
     const periods = data.map((d) => d.periodo).reverse();
 
     const bankNames = new Set<string>();
     data.forEach((p) => p.entidades.forEach((e) => bankNames.add(e.entidad)));
     const banks = Array.from(bankNames);
-
-    // Calculate variations per bank per period
-    // The first period in the reversed array (oldest) has no previous period to compare against, so its variation is 0 or we skip it.
 
     const series = banks.map((bank, index) => {
         const pastelColors = [
@@ -23,6 +23,8 @@ export function InflowChart({ data }: Props) {
 
         // Map through the reversed data (oldest to newest)
         const reversedData = [...data].reverse();
+
+        let accumulated = 0;
         const dataPoints = reversedData.map((period, pIdx) => {
             const match = period.entidades.find((e) => e.entidad === bank);
             const currentMonto = match ? match.monto : 0;
@@ -31,13 +33,12 @@ export function InflowChart({ data }: Props) {
             if (pIdx > 0) {
                 const prevMatch = reversedData[pIdx - 1].entidades.find((e) => e.entidad === bank);
                 prevMonto = prevMatch ? prevMatch.monto : 0;
-            } else {
-                // For the very first month, variation is technically unknowable. We can treat it as 0
-                return 0;
             }
 
-            const diff = currentMonto - prevMonto;
-            return diff;
+            const diff = pIdx > 0 ? currentMonto - prevMonto : 0;
+            accumulated = pIdx === 0 ? currentMonto : accumulated + diff;
+
+            return viewMode === 'acumulada' ? accumulated : diff;
         });
 
         return {
@@ -82,7 +83,7 @@ export function InflowChart({ data }: Props) {
             borderColor: 'rgba(255, 255, 255, 0.2)',
             textStyle: { color: '#ededed' },
             formatter: (params: any) => {
-                let text = `<strong>${params[0].name} (Variación)</strong><br/>`;
+                let text = `<strong>${params[0].name} (${viewMode === 'acumulada' ? 'Variación Acumulada' : 'Variación Mensual'})</strong><br/>`;
                 let netChange = 0;
 
                 params.forEach((p: any) => {
@@ -97,7 +98,7 @@ export function InflowChart({ data }: Props) {
                 if (netChange !== 0) {
                     const totalColor = netChange > 0 ? '#ff4d4f' : '#50e3c2';
                     const totalSign = netChange > 0 ? '+' : '';
-                    text += `<hr style="border:0;border-top:1px solid rgba(255,255,255,0.1);margin:4px 0" /><strong>Total Variación: <span style="color:${totalColor}">$${totalSign}${netChange.toLocaleString('es-AR')}M</span></strong>`;
+                    text += `<hr style="border:0;border-top:1px solid rgba(255,255,255,0.1);margin:4px 0" /><strong>${viewMode === 'acumulada' ? 'Total Acumulado' : 'Total Variación'}: <span style="color:${totalColor}">$${totalSign}${netChange.toLocaleString('es-AR')}M</span></strong>`;
                 }
 
                 return text;
@@ -136,12 +137,53 @@ export function InflowChart({ data }: Props) {
     const chartHeight = Math.max(400, 320 + (legendRows * 20));
 
     return (
-        <div style={{ height: `${chartHeight}px`, width: '100%' }}>
-            <ReactECharts
-                option={options}
-                style={{ height: '100%', width: '100%' }}
-                opts={{ renderer: 'canvas' }}
-            />
+        <div style={{ width: '100%' }}>
+            {/* Toggle Container */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '8px', paddingRight: '10px' }}>
+                <div style={{ background: 'rgba(255,255,255,0.05)', borderRadius: '6px', padding: '2px', display: 'flex', gap: '4px' }}>
+                    <button
+                        onClick={() => setViewMode('mensual')}
+                        style={{
+                            background: viewMode === 'mensual' ? 'rgba(255,255,255,0.1)' : 'transparent',
+                            border: 'none',
+                            color: viewMode === 'mensual' ? '#fff' : '#a1a1aa',
+                            padding: '4px 12px',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontSize: '0.85rem',
+                            transition: 'all 0.2s',
+                            fontWeight: viewMode === 'mensual' ? '600' : 'normal'
+                        }}
+                    >
+                        Mensual
+                    </button>
+                    <button
+                        onClick={() => setViewMode('acumulada')}
+                        style={{
+                            background: viewMode === 'acumulada' ? 'rgba(255,255,255,0.1)' : 'transparent',
+                            border: 'none',
+                            color: viewMode === 'acumulada' ? '#fff' : '#a1a1aa',
+                            padding: '4px 12px',
+                            borderRadius: '4px',
+                            cursor: 'pointer',
+                            fontSize: '0.85rem',
+                            transition: 'all 0.2s',
+                            fontWeight: viewMode === 'acumulada' ? '600' : 'normal'
+                        }}
+                    >
+                        Acumulada
+                    </button>
+                </div>
+            </div>
+
+            {/* Chart Container */}
+            <div style={{ height: `${chartHeight}px`, width: '100%' }}>
+                <ReactECharts
+                    option={options}
+                    style={{ height: '100%', width: '100%' }}
+                    opts={{ renderer: 'canvas' }}
+                />
+            </div>
         </div>
     );
 }
