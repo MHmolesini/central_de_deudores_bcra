@@ -3,7 +3,7 @@
   /* Very dark blue base */
   --bg-gradient: radial-gradient(circle at 15% 50%, rgba(0, 112, 243, 0.08) 0%, transparent 50%), radial-gradient(circle at 85% 30%, rgba(132, 250, 176, 0.08) 0%, transparent 50%), linear-gradient(180deg, #020617 0%, #030712 100%);
   --bg-color-secondary: #0a0a0a;
-  --bg-color-card: #111111;
+  --bg-color-card: rgba(17, 17, 17, 0.6);
   --border-color: rgba(255, 255, 255, 0.1);
   --border-color-hover: rgba(255, 255, 255, 0.2);
   --text-primary: #ededed;
@@ -31,10 +31,10 @@
 
   --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.8);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.8), 0 2px 4px -1px rgba(0, 0, 0, 0.8);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.8), 0 4px 6px -2px rgba(0, 0, 0, 0.8);
-  --shadow-glow: 0 0 20px rgba(255, 255, 255, 0.05);
+  --shadow-sm: 0 4px 12px 0 rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 10px 24px -4px rgba(0, 0, 0, 0.5), 0 6px 10px -4px rgba(0, 0, 0, 0.3);
+  --shadow-lg: 0 20px 32px -6px rgba(0, 0, 0, 0.6), 0 10px 14px -4px rgba(0, 0, 0, 0.4);
+  --shadow-glow: 0 0 24px rgba(255, 255, 255, 0.08);
 
   --radius-sm: 4px;
   --radius-md: 8px;
@@ -83,6 +83,8 @@ a:hover {
 
 .card {
   background-color: var(--bg-color-card);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-sm);
