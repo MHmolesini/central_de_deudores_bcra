@@ -66,20 +66,6 @@ function App() {
       <Header />
 
       <main style={{ flex: 1, position: 'relative' }}>
-        {/* Abstract background blobs for premium aesthetic */}
-        <div style={{
-          position: 'absolute',
-          top: '-10%', left: '-5%', width: '30%', height: '50%',
-          background: 'radial-gradient(circle, rgba(0,112,243,0.15) 0%, rgba(0,0,0,0) 70%)',
-          zIndex: -1, pointerEvents: 'none'
-        }} />
-        <div style={{
-          position: 'absolute',
-          top: '20%', right: '-10%', width: '40%', height: '60%',
-          background: 'radial-gradient(circle, rgba(132,250,176,0.1) 0%, rgba(0,0,0,0) 70%)',
-          zIndex: -1, pointerEvents: 'none'
-        }} />
-
         <SearchForm onSearch={handleSearch} isLoading={isLoading} />
 
         {error && (

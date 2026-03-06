@@ -9,6 +9,7 @@ export function Footer() {
             marginTop: 'auto'
         }}>
             <p>© {new Date().getFullYear()} Central de Deudores BCRA SaaS. Proyecto no oficial.</p>
+            <p style={{ marginTop: '0.5rem', opacity: 0.7 }}>Distribuido bajo la Licencia MIT.</p>
         </footer>
     );
 }

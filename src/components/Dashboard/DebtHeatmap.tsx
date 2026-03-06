@@ -2,7 +2,7 @@ import { useMemo, useState, useRef, useEffect } from 'react';
 import ReactECharts from 'echarts-for-react';
 import { LayoutGrid, Filter, ChevronDown, Download } from 'lucide-react';
 import type { BCRAPeriodo } from '../../services/bcra';
-import { exportToExcel, formatPeriodLabel } from '../../utils/exportUtils';
+import { exportToExcel } from '../../utils/exportUtils';
 import styles from './Dashboard.module.css';
 
 interface Props {
