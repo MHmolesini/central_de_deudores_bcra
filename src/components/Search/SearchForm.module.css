@@ -15,6 +15,7 @@
     letter-spacing: -0.05em;
     margin-bottom: 1rem;
     background: linear-gradient(to right, var(--text-primary), #888);
+    background-clip: text;
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
 }
@@ -113,4 +114,82 @@
     to {
         transform: rotate(360deg);
     }
+}
+
+/* Compact Mode Styles */
+.compactForm {
+    display: flex;
+    width: 100%;
+    max-width: 350px;
+    gap: 0.5rem;
+    position: relative;
+}
+
+.compactInputWrapper {
+    position: relative;
+    flex: 1;
+}
+
+.compactIcon {
+    position: absolute;
+    left: 0.75rem;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+    pointer-events: none;
+}
+
+.compactInput {
+    width: 100%;
+    padding: 0.5rem 0.75rem 0.5rem 2.25rem;
+    font-size: 0.875rem;
+    font-family: inherit;
+    color: var(--text-primary);
+    background-color: rgba(255, 255, 255, 0.05);
+    /* very subtle background for top header */
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: var(--radius-md);
+    outline: none;
+    transition: all var(--transition-fast);
+}
+
+.compactInput:focus {
+    border-color: var(--accent-color);
+    background-color: rgba(0, 0, 0, 0.2);
+    box-shadow: 0 0 0 2px rgba(0, 112, 243, 0.2);
+}
+
+.compactInput::placeholder {
+    color: var(--text-secondary);
+}
+
+.compactButton {
+    padding: 0 1rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: #fff;
+    background-color: var(--text-primary);
+    color: var(--bg-color);
+    border: none;
+    border-radius: var(--radius-md);
+    cursor: pointer;
+    transition: transform var(--transition-fast), opacity var(--transition-fast);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 80px;
+}
+
+.compactButton:hover:not(:disabled) {
+    opacity: 0.9;
+    transform: translateY(-1px);
+}
+
+.compactButton:active:not(:disabled) {
+    transform: translateY(0);
+}
+
+.compactButton:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
 }

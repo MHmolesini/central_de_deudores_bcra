@@ -1,5 +1,4 @@
 import { useState } from 'react';
-import { Header } from './components/Layout/Header';
 import { Footer } from './components/Layout/Footer';
 import { SearchForm } from './components/Search/SearchForm';
 import { Dashboard } from './components/Dashboard/Dashboard';
@@ -63,10 +62,10 @@ function App() {
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-      <Header />
-
-      <main style={{ flex: 1, position: 'relative' }}>
-        <SearchForm onSearch={handleSearch} isLoading={isLoading} />
+      <main style={{ flex: 1, position: 'relative', paddingTop: '1rem' }}>
+        {!historial && (
+          <SearchForm onSearch={handleSearch} isLoading={isLoading} />
+        )}
 
         {error && (
           <div style={{ textAlign: 'center', color: 'var(--danger-color)', padding: '1rem' }}>
@@ -81,6 +80,8 @@ function App() {
               cheques={cheques}
               exchangeRates={exchangeRates}
               inflationIndex={inflationIndex}
+              onSearch={handleSearch}
+              isLoading={isLoading}
             />
           </div>
         )}

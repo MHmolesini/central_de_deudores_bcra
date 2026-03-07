@@ -5,9 +5,10 @@ import styles from './SearchForm.module.css';
 interface Props {
     onSearch: (cuit: string) => void;
     isLoading: boolean;
+    compact?: boolean;
 }
 
-export function SearchForm({ onSearch, isLoading }: Props) {
+export function SearchForm({ onSearch, isLoading, compact = false }: Props) {
     const [cuit, setCuit] = useState('');
 
     const handleSubmit = (e: React.FormEvent) => {
@@ -16,6 +17,32 @@ export function SearchForm({ onSearch, isLoading }: Props) {
             onSearch(cuit.trim());
         }
     };
+
+    if (compact) {
+        return (
+            <form onSubmit={handleSubmit} className={styles.compactForm}>
+                <div className={styles.compactInputWrapper}>
+                    <Search className={styles.compactIcon} size={16} />
+                    <input
+                        type="text"
+                        className={styles.compactInput}
+                        placeholder="Buscar otro CUIT/CUIL..."
+                        value={cuit}
+                        onChange={(e) => setCuit(e.target.value.replace(/\D/g, ''))}
+                        maxLength={11}
+                        disabled={isLoading}
+                    />
+                </div>
+                <button
+                    type="submit"
+                    className={styles.compactButton}
+                    disabled={cuit.length < 8 || isLoading}
+                >
+                    {isLoading ? <Loader2 className={styles.spin} size={16} /> : 'Buscar'}
+                </button>
+            </form>
+        );
+    }
 
     return (
         <div className={styles.container}>
