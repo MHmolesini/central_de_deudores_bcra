@@ -43,12 +43,12 @@ export function DebtChart({ data, currency = 'ARS', exchangeRates = {}, inflatio
     // Map data per bank
     const series = banks.map((bank, index) => {
         // Pastel colors from our CSS tokens or hardcoded map
-        const pastelColors = [
-            '#cbb4d4', // Purple
-            '#84fab0', // Green
-            '#8fd3f4', // Blue
-            '#ffd194', // Orange
-            '#ff9a9e'  // Pink
+        const chartColors = [
+            '#cbb4d4', '#84fab0', '#8fd3f4', '#ffd194', '#ff9a9e',
+            '#a1c4fd', '#fbc2eb', '#88d3ce', '#fbd72b', '#a18cd1',
+            '#d4fc79', '#96e6a1', '#4facfe', '#f093fb', '#f6d365',
+            '#667eea', '#30cfd0', '#ff758c', '#4fb576', '#0ba360',
+            '#3cba92', '#df89b5', '#5f72bd', '#00c6ff'
         ];
 
         const dataPoints = [...data].reverse().map((period, pIdx) => {
@@ -81,7 +81,7 @@ export function DebtChart({ data, currency = 'ARS', exchangeRates = {}, inflatio
             type: 'bar',
             stack: 'total',
             itemStyle: {
-                color: pastelColors[index % pastelColors.length],
+                color: chartColors[index % chartColors.length],
                 borderRadius: [4, 4, 0, 0] // Rounded tops
             },
             emphasis: { focus: 'series' },
@@ -109,9 +109,7 @@ export function DebtChart({ data, currency = 'ARS', exchangeRates = {}, inflatio
         return p;
     });
 
-    // Calculate dynamic bottom padding based on the number of banks in the legend.
-    const legendRows = Math.ceil(banks.length / 2);
-    const dynamicBottom = `${Math.max(15, 10 + (legendRows * 4))}%`;
+
 
     const options = {
         backgroundColor: 'transparent',
@@ -193,15 +191,18 @@ export function DebtChart({ data, currency = 'ARS', exchangeRates = {}, inflatio
             }
         },
         legend: {
+            type: 'scroll',
             data: banks,
             textStyle: { color: '#a1a1aa' },
             bottom: 0,
-            icon: 'circle'
+            icon: 'circle',
+            pageIconColor: '#fff',
+            pageTextStyle: { color: '#888' }
         },
         grid: {
             left: '3%',
             right: '4%',
-            bottom: dynamicBottom,
+            bottom: 60,
             top: '5%',
             containLabel: true
         },
@@ -230,7 +231,7 @@ export function DebtChart({ data, currency = 'ARS', exchangeRates = {}, inflatio
         series: series
     };
 
-    const chartHeight = Math.max(480, 400 + (legendRows * 20));
+    const chartHeight = 450;
 
     return (
         <div style={{ width: '100%' }}>

@@ -1,6 +1,6 @@
 import styles from './BouncedChecksTable.module.css';
 import type { BCRAChequesResponse } from '../../services/bcra';
-import { AlertTriangle, CheckCircle, XCircle } from 'lucide-react';
+import { AlertTriangle, CheckCircle, XCircle, User, Briefcase, Search } from 'lucide-react';
 
 interface Props {
     data: BCRAChequesResponse | null;
@@ -26,6 +26,8 @@ export function BouncedChecksTable({ data, currency, exchangeRates, inflationInd
         estadoMulta: string | null;
         procesoJud: boolean;
         enRevision: boolean;
+        ctaPersonal: boolean;
+        denomJuridica: string | null;
     }[] = [];
 
     data.results.causales.forEach(causal => {
@@ -106,14 +108,15 @@ export function BouncedChecksTable({ data, currency, exchangeRates, inflationInd
                 <table className={styles.table}>
                     <thead>
                         <tr>
-                            <th>Fecha Rechazo</th>
-                            <th>Nro. Cheque</th>
+                            <th>Fecha</th>
+                            <th>Cheque</th>
                             <th>Causal</th>
                             <th>Entidad</th>
+                            <th>Tipo Cuenta</th>
                             <th className={styles.numberCol}>Monto</th>
-                            <th>Fecha Pago</th>
+                            <th>Estado Pago</th>
                             <th>Multa</th>
-                            <th>Proceso Jud.</th>
+                            <th>Rev. / Jud.</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -133,6 +136,17 @@ export function BouncedChecksTable({ data, currency, exchangeRates, inflationInd
                                         </span>
                                     </td>
                                     <td className={styles.entidadCol}>Entidad {row.entidad}</td>
+                                    <td>
+                                        {row.ctaPersonal ? (
+                                            <span className={styles.accountBadge} title="Cuenta Personal">
+                                                <User size={12} /> Personal
+                                            </span>
+                                        ) : (
+                                            <span className={`${styles.accountBadge} ${styles.business}`} title={row.denomJuridica || 'Cuenta Jurídica'}>
+                                                <Briefcase size={12} /> Jurídica
+                                            </span>
+                                        )}
+                                    </td>
                                     <td className={styles.amountCol}>{amountStr}</td>
                                     <td className={styles.dateCol}>
                                         {row.fechaPago ? (
@@ -157,13 +171,19 @@ export function BouncedChecksTable({ data, currency, exchangeRates, inflationInd
                                         )}
                                     </td>
                                     <td>
-                                        {row.procesoJud ? (
-                                            <span className={styles.dangerBadge}>
-                                                <AlertTriangle size={14} /> Sí
-                                            </span>
-                                        ) : (
-                                            <span className={styles.muted}>No</span>
-                                        )}
+                                        <div style={{ display: 'flex', gap: '4px' }}>
+                                            {row.enRevision && (
+                                                <span className={styles.revisionBadge} title="En Revisión">
+                                                    <Search size={12} /> Rev.
+                                                </span>
+                                            )}
+                                            {row.procesoJud && (
+                                                <span className={styles.dangerBadge} title="Proceso Judicial">
+                                                    <AlertTriangle size={12} /> Jud.
+                                                </span>
+                                            )}
+                                            {!row.enRevision && !row.procesoJud && <span className={styles.muted}>-</span>}
+                                        </div>
                                     </td>
                                 </tr>
                             );

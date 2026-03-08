@@ -31,6 +31,9 @@ export function BankLogo({ bankName, size = 40 }: Props) {
         if (normalized.includes('coinag')) return 'coinag.svg';
         if (normalized.includes('cmf')) return 'cmf.svg';
         if (normalized.includes('nacion')) return 'nacion.svg';
+        if (normalized.includes('citi') || normalized.includes('citibank')) return 'citi.svg';
+        if (normalized.includes('hipotecario')) return 'hipotecario.svg';
+        if (normalized.includes('patagonia')) return 'patagonia.svg';
 
         // Para el futuro, si querés agregar más, podes guiñarlos acá:
         // if (normalized.includes('nacion')) return 'nacion.svg';

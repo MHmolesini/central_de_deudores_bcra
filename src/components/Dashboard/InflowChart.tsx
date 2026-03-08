@@ -71,8 +71,12 @@ export function InflowChart({ data, currency = 'ARS', exchangeRates = {}, inflat
     const banks = Array.from(bankNames);
 
     const series = banks.map((bank, index) => {
-        const pastelColors = [
-            '#cbb4d4', '#84fab0', '#8fd3f4', '#ffd194', '#ff9a9e'
+        const chartColors = [
+            '#cbb4d4', '#84fab0', '#8fd3f4', '#ffd194', '#ff9a9e',
+            '#a1c4fd', '#fbc2eb', '#88d3ce', '#fbd72b', '#a18cd1',
+            '#d4fc79', '#96e6a1', '#4facfe', '#f093fb', '#f6d365',
+            '#667eea', '#30cfd0', '#ff758c', '#4fb576', '#0ba360',
+            '#3cba92', '#df89b5', '#5f72bd', '#00c6ff'
         ];
 
         // Map through the reversed data (oldest to newest)
@@ -120,7 +124,7 @@ export function InflowChart({ data, currency = 'ARS', exchangeRates = {}, inflat
             type: 'bar',
             stack: 'total',
             itemStyle: {
-                color: pastelColors[index % pastelColors.length],
+                color: chartColors[index % chartColors.length],
             },
             emphasis: { focus: 'series' },
             data: dataPoints
@@ -145,8 +149,7 @@ export function InflowChart({ data, currency = 'ARS', exchangeRates = {}, inflat
         return p;
     });
 
-    const legendRows = Math.ceil(banks.length / 2);
-    const dynamicBottom = `${Math.max(15, 10 + (legendRows * 4))}%`;
+
 
     const options = {
         backgroundColor: 'transparent',
@@ -189,15 +192,18 @@ export function InflowChart({ data, currency = 'ARS', exchangeRates = {}, inflat
             }
         },
         legend: {
+            type: 'scroll',
             data: banks,
             textStyle: { color: '#a1a1aa' },
             bottom: 0,
-            icon: 'circle'
+            icon: 'circle',
+            pageIconColor: '#fff',
+            pageTextStyle: { color: '#888' }
         },
         grid: {
             left: '4%',
             right: '4%',
-            bottom: dynamicBottom,
+            bottom: 60,
             top: '5%',
             containLabel: true
         },
@@ -224,7 +230,7 @@ export function InflowChart({ data, currency = 'ARS', exchangeRates = {}, inflat
         series: series
     };
 
-    const chartHeight = Math.max(400, 320 + (legendRows * 20));
+    const chartHeight = 450;
 
     return (
         <div style={{ width: '100%' }}>

@@ -13,10 +13,14 @@ export function EntityPieChart({ data, currency, exchangeRates, inflationIndex }
     const chartData = useMemo(() => {
         if (!data || data.length === 0) return [];
 
-        const latestPeriod = data[0];
+        const latestPeriod: BCRAPeriodo = data[0];
         const { periodo, entidades } = latestPeriod;
 
-        const entityData = entidades.map((entidad: { entidad: string; monto: number }) => {
+        const total: number = entidades.reduce((acc: number, e: { monto: number }) => acc + e.monto, 0);
+        let otherValue: number = 0;
+        const mainEntities: { name: string; value: number }[] = [];
+
+        entidades.forEach((entidad: { entidad: string; monto: number }) => {
             let value = entidad.monto;
             if (currency === 'USD') {
                 const rate = exchangeRates[periodo] || exchangeRates[Object.keys(exchangeRates)[0]] || 1;
@@ -26,14 +30,26 @@ export function EntityPieChart({ data, currency, exchangeRates, inflationIndex }
                 value = value * index;
             }
 
-            return {
-                name: entidad.entidad,
-                value: Math.max(0, value)
-            };
-        }).filter((item: { name: string; value: number }) => item.value > 0)
-            .sort((a: { name: string; value: number }, b: { name: string; value: number }) => b.value - a.value);
+            const pct = (entidad.monto / total) * 100;
+            if (pct < 2 && entidades.length > 8) {
+                otherValue += value;
+            } else {
+                mainEntities.push({
+                    name: entidad.entidad,
+                    value: Math.max(0, value)
+                });
+            }
+        });
 
-        return entityData;
+        const finalData = mainEntities.sort((a, b) => b.value - a.value);
+        if (otherValue > 0) {
+            finalData.push({
+                name: 'OTROS',
+                value: otherValue
+            });
+        }
+
+        return finalData;
     }, [data, currency, exchangeRates, inflationIndex]);
 
     const formatValue = (value: number) => {
@@ -77,6 +93,13 @@ export function EntityPieChart({ data, currency, exchangeRates, inflationIndex }
             pageIconColor: '#fff',
             pageTextStyle: { color: '#888' }
         },
+        color: [
+            '#cbb4d4', '#84fab0', '#8fd3f4', '#ffd194', '#ff9a9e',
+            '#a1c4fd', '#fbc2eb', '#88d3ce', '#fbd72b', '#a18cd1',
+            '#d4fc79', '#96e6a1', '#4facfe', '#f093fb', '#f6d365',
+            '#667eea', '#30cfd0', '#ff758c', '#4fb576', '#0ba360',
+            '#3cba92', '#df89b5', '#5f72bd', '#00c6ff'
+        ],
         series: [
             {
                 name: 'Deuda',
