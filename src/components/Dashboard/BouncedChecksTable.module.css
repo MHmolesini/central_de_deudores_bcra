@@ -121,6 +121,48 @@
     border: 1px solid rgba(245, 166, 35, 0.2);
 }
 
+.causalSinFondos {
+    background-color: rgba(239, 68, 68, 0.15);
+    color: #ef4444;
+    border-color: rgba(239, 68, 68, 0.2);
+}
+
+.causalDefectos {
+    background-color: rgba(245, 158, 11, 0.15);
+    color: #f59e0b;
+    border-color: rgba(245, 158, 11, 0.2);
+}
+
+.causalOrden {
+    background-color: rgba(59, 130, 246, 0.15);
+    color: #3b82f6;
+    border-color: rgba(59, 130, 246, 0.2);
+}
+
+.causalEndosos {
+    background-color: rgba(168, 85, 247, 0.15);
+    color: #a855f7;
+    border-color: rgba(168, 85, 247, 0.2);
+}
+
+.causalTermino {
+    background-color: rgba(113, 113, 122, 0.15);
+    color: #a1a1aa;
+    border-color: rgba(113, 113, 122, 0.2);
+}
+
+.causalDuplicada {
+    background-color: rgba(6, 182, 212, 0.15);
+    color: #06b6d4;
+    border-color: rgba(6, 182, 212, 0.2);
+}
+
+.causalCerrada {
+    background-color: rgba(236, 72, 153, 0.15);
+    color: #ec4899;
+    border-color: rgba(236, 72, 153, 0.2);
+}
+
 .success {
     display: flex;
     align-items: center;
@@ -180,4 +222,62 @@
 
 .tableWrapper::-webkit-scrollbar-thumb:hover {
     background: rgba(255, 255, 255, 0.25);
+}
+
+.legend {
+    margin-top: 2rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.legendTitle {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: 1rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.legendGrid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+}
+
+.legendItem {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    padding: 0.75rem;
+    background-color: rgba(255, 255, 255, 0.02);
+    border-radius: 8px;
+    border: 1px solid rgba(255, 255, 255, 0.03);
+}
+
+.legendHeader {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.legendCode {
+    font-family: monospace;
+    font-weight: 700;
+    font-size: 0.75rem;
+    background: rgba(255, 255, 255, 0.1);
+    padding: 1px 4px;
+    border-radius: 3px;
+    color: var(--text-color);
+}
+
+.legendName {
+    font-weight: 600;
+    font-size: 0.85rem;
+}
+
+.legendDesc {
+    font-size: 0.75rem;
+    color: var(--text-secondary);
+    line-height: 1.4;
 }

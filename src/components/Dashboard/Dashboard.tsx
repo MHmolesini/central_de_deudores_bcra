@@ -8,6 +8,8 @@ import { BankLogo } from './BankLogo';
 import { StatusIndicator } from './StatusIndicator';
 import { BouncedChecksTable } from './BouncedChecksTable';
 import { BouncedChecksChart } from './BouncedChecksChart';
+import { BouncedChecksKPIs } from './BouncedChecksKPIs';
+import { BouncedChecksCausalChart } from './BouncedChecksCausalChart';
 import { InfoSection } from './InfoSection';
 import { AlertCircle, FileWarning, ShieldAlert, DollarSign, Coins, ArrowLeftRight } from 'lucide-react';
 import { SearchForm } from '../Search/SearchForm';
@@ -236,7 +238,13 @@ export function Dashboard({ historial, cheques, exchangeRates, inflationIndex, o
                     </div>
 
                     <BouncedChecksTable data={cheques} currency={currency} exchangeRates={exchangeRates} inflationIndex={inflationIndex} />
-                    <BouncedChecksChart data={cheques} currency={currency} exchangeRates={exchangeRates} inflationIndex={inflationIndex} />
+
+                    <BouncedChecksKPIs data={cheques} currency={currency} exchangeRates={exchangeRates} inflationIndex={inflationIndex} />
+
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))', gap: '2rem', marginBottom: '2rem' }}>
+                        <BouncedChecksChart data={cheques} currency={currency} exchangeRates={exchangeRates} inflationIndex={inflationIndex} />
+                        <BouncedChecksCausalChart data={cheques} currency={currency} exchangeRates={exchangeRates} inflationIndex={inflationIndex} />
+                    </div>
 
                     <div className={`${styles.card} ${styles.entitiesCard}`}>
                         <h3>Situación Actual por Entidad</h3>

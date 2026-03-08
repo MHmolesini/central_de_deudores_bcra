@@ -67,6 +67,29 @@ export function BouncedChecksTable({ data, currency, exchangeRates, inflationInd
         return amount;
     };
 
+    // Helper to get color class for causal
+    const getCausalClass = (causal: string) => {
+        const c = causal.toUpperCase();
+        if (c.includes('SIN FONDOS')) return styles.causalSinFondos;
+        if (c.includes('DEFECTOS FORMALES')) return styles.causalDefectos;
+        if (c.includes('ORDEN DE NO PAGAR')) return styles.causalOrden;
+        if (c.includes('EXCESO DE ENDOSOS')) return styles.causalEndosos;
+        if (c.includes('FUERA DE TÉRMINO')) return styles.causalTermino;
+        if (c.includes('TRANSACCIÓN DUPLICADA')) return styles.causalDuplicada;
+        if (c.includes('CUENTA CERRADA')) return styles.causalCerrada;
+        return '';
+    };
+
+    const causalesInfo = [
+        { id: 'R10', name: 'SIN FONDOS', desc: 'No hay fondos suficientes o autorización de descubierto.', class: styles.causalSinFondos },
+        { id: 'R06', name: 'DEFECTOS FORMALES', desc: 'Error en fecha, firma, beneficiario o escritura.', class: styles.causalDefectos },
+        { id: 'R08', name: 'ORDEN DE NO PAGAR', desc: 'El librador puso una denuncia (robo, extravío, coacción).', class: styles.causalOrden },
+        { id: 'R11', name: 'EXCESO DE ENDOSOS', desc: 'El cheque tiene más endosos de los permitidos por ley.', class: styles.causalEndosos },
+        { id: 'R15', name: 'FUERA DE TÉRMINO', desc: 'Presentado después de los 30 días de su emisión.', class: styles.causalTermino },
+        { id: 'R24', name: 'TRANSACCIÓN DUPLICADA', desc: 'Intento de cobrar el mismo echeq o cheque dos veces.', class: styles.causalDuplicada },
+        { id: 'R30', name: 'CUENTA CERRADA', desc: 'La cuenta corriente ya no existe.', class: styles.causalCerrada },
+    ];
+
     return (
         <div className={styles.container}>
             <div className={styles.headerRow}>
@@ -105,7 +128,9 @@ export function BouncedChecksTable({ data, currency, exchangeRates, inflationInd
                                     <td className={styles.dateCol}>{row.fechaRechazo}</td>
                                     <td className={styles.idCol}>#{row.nroCheque}</td>
                                     <td>
-                                        <span className={styles.causalBadge}>{row.causal}</span>
+                                        <span className={`${styles.causalBadge} ${getCausalClass(row.causal)}`}>
+                                            {row.causal}
+                                        </span>
                                     </td>
                                     <td className={styles.entidadCol}>Entidad {row.entidad}</td>
                                     <td className={styles.amountCol}>{amountStr}</td>
@@ -145,6 +170,21 @@ export function BouncedChecksTable({ data, currency, exchangeRates, inflationInd
                         })}
                     </tbody>
                 </table>
+            </div>
+
+            <div className={styles.legend}>
+                <h4 className={styles.legendTitle}>Referencia de Causales</h4>
+                <div className={styles.legendGrid}>
+                    {causalesInfo.map(info => (
+                        <div key={info.id} className={styles.legendItem}>
+                            <div className={styles.legendHeader}>
+                                <span className={styles.legendCode}>{info.id}</span>
+                                <span className={`${styles.legendName} ${info.class}`}>{info.name}</span>
+                            </div>
+                            <span className={styles.legendDesc}>{info.desc}</span>
+                        </div>
+                    ))}
+                </div>
             </div>
         </div>
     );

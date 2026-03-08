@@ -58,7 +58,7 @@ export function EntityPieChart({ data, currency, exchangeRates, inflationIndex }
         backgroundColor: 'transparent',
         tooltip: {
             trigger: 'item',
-            backgroundColor: 'rgba(3, 7, 18, 0.9)',
+            backgroundColor: 'rgba(24, 24, 27, 0.95)',
             borderColor: 'rgba(255, 255, 255, 0.1)',
             textStyle: { color: '#fff' },
             formatter: (params: any) => {

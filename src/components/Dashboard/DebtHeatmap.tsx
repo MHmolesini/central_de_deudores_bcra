@@ -107,9 +107,9 @@ export function DebtHeatmap({ data, currency = 'ARS', exchangeRates = {}, inflat
     const options = {
         tooltip: {
             position: 'top',
-            backgroundColor: '#0a0a0a',
-            borderColor: 'rgba(255, 255, 255, 0.2)',
-            textStyle: { color: '#ededed' },
+            backgroundColor: 'rgba(24, 24, 27, 0.95)',
+            borderColor: 'rgba(255, 255, 255, 0.1)',
+            textStyle: { color: '#fff' },
             formatter: (params: any) => {
                 const val = params.data[2];
                 const year = heatmapData.yearList[params.data[1]];

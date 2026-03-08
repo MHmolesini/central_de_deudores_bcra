@@ -153,9 +153,9 @@ export function InflowChart({ data, currency = 'ARS', exchangeRates = {}, inflat
         tooltip: {
             trigger: 'axis',
             axisPointer: { type: 'shadow' },
-            backgroundColor: '#0a0a0a',
-            borderColor: 'rgba(255, 255, 255, 0.2)',
-            textStyle: { color: '#ededed' },
+            backgroundColor: 'rgba(24, 24, 27, 0.95)',
+            borderColor: 'rgba(255, 255, 255, 0.1)',
+            textStyle: { color: '#fff' },
             formatter: (params: any) => {
                 let text = `<strong>${params[0].name} (${viewMode === 'acumulada' ? 'Variación Acumulada' : 'Variación Mensual'})</strong><br/>`;
                 let netChange = 0;

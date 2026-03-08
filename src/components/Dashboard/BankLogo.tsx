@@ -28,6 +28,9 @@ export function BankLogo({ bankName, size = 40 }: Props) {
         if (normalized.includes('comafi')) return 'comafi.svg';
         if (normalized.includes('ciudad')) return 'ciudad.svg';
         if (normalized.includes('provincia')) return 'provincia.svg';
+        if (normalized.includes('coinag')) return 'coinag.svg';
+        if (normalized.includes('cmf')) return 'cmf.svg';
+        if (normalized.includes('nacion')) return 'nacion.svg';
 
         // Para el futuro, si querés agregar más, podes guiñarlos acá:
         // if (normalized.includes('nacion')) return 'nacion.svg';
