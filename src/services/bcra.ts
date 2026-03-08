@@ -76,16 +76,55 @@ export async function fetchHistorialCrediticio(cuit: string): Promise<BCRAHistor
   return data;
 }
 
-export interface BCRAChequesResponse {
-  status: number;
-  results: any;
+export interface BCRAEstadoMulta {
+  // Can be "IMPAGA" or null based on the response
 }
 
-// Keeping this stubbed out for now as the user didn't provide actual endpoint mapping for cheques,
-// but the interface could be utilized similarly if needed.
-export async function fetchChequesRechazados(_cuit: string): Promise<BCRAChequesResponse | null> {
-  // Use _cuit to bypass unused variable warning for now
-  return null;
+export interface BCRAChequeDetalle {
+  nroCheque: number;
+  fechaRechazo: string;
+  monto: number;
+  fechaPago: string | null;
+  fechaPagoMulta: string | null;
+  estadoMulta: string | null;
+  ctaPersonal: boolean;
+  denomJuridica: string | null;
+  enRevision: boolean;
+  procesoJud: boolean;
+}
+
+export interface BCRAChequesEntidad {
+  entidad: number;
+  detalle: BCRAChequeDetalle[];
+}
+
+export interface BCRAChequesCausal {
+  causal: string;
+  entidades: BCRAChequesEntidad[];
+}
+
+export interface BCRAChequesResponse {
+  status: number;
+  results: {
+    identificacion: number;
+    denominacion: string;
+    causales: BCRAChequesCausal[];
+  };
+}
+
+export async function fetchChequesRechazados(cuit: string): Promise<BCRAChequesResponse | null> {
+  const baseDeudas = DEUDAS_API_URL;
+  try {
+    const res = await fetch(getUrl(baseDeudas, `/ChequesRechazados/${cuit}`));
+    if (!res.ok) {
+      if (res.status === 404) return null;
+      throw new Error('Error fetching bounced checks');
+    }
+    return res.json();
+  } catch (e) {
+    console.warn("Could not fetch bounced checks", e);
+    return null;
+  }
 }
 
 export interface BCRAExchangeRate {

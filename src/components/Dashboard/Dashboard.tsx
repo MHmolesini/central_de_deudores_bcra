@@ -6,6 +6,8 @@ import { DebtHeatmap } from './DebtHeatmap';
 import { EntityPieChart } from './EntityPieChart';
 import { BankLogo } from './BankLogo';
 import { StatusIndicator } from './StatusIndicator';
+import { BouncedChecksTable } from './BouncedChecksTable';
+import { BouncedChecksChart } from './BouncedChecksChart';
 import { InfoSection } from './InfoSection';
 import { AlertCircle, FileWarning, ShieldAlert, DollarSign, Coins, ArrowLeftRight } from 'lucide-react';
 import { SearchForm } from '../Search/SearchForm';
@@ -232,6 +234,9 @@ export function Dashboard({ historial, cheques, exchangeRates, inflationIndex, o
                             <EntityPieChart data={periodos} currency={currency} exchangeRates={exchangeRates} inflationIndex={inflationIndex} />
                         </div>
                     </div>
+
+                    <BouncedChecksTable data={cheques} currency={currency} exchangeRates={exchangeRates} inflationIndex={inflationIndex} />
+                    <BouncedChecksChart data={cheques} currency={currency} exchangeRates={exchangeRates} inflationIndex={inflationIndex} />
 
                     <div className={`${styles.card} ${styles.entitiesCard}`}>
                         <h3>Situación Actual por Entidad</h3>

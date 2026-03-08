@@ -1,0 +1,183 @@
+.container {
+    background-color: var(--bg-color-card);
+    border: 1px solid var(--border-color);
+    border-radius: var(--radius-lg);
+    padding: 1.5rem;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 2rem;
+}
+
+.headerRow {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+}
+
+.title {
+    font-size: 1.25rem;
+    font-weight: 500;
+    color: var(--text-color);
+    margin: 0;
+}
+
+.subtitle {
+    font-size: 0.875rem;
+    color: var(--text-secondary);
+    margin: 0.25rem 0 0 0;
+}
+
+.badgeCount {
+    background-color: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.1);
+    border-radius: 9999px;
+    padding: 0.35rem 0.85rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--text-color);
+}
+
+.tableWrapper {
+    width: 100%;
+    overflow-x: auto;
+    max-height: 480px;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+    border-radius: var(--radius-md);
+    background-color: rgba(255, 255, 255, 0.02);
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 900px;
+    text-align: left;
+}
+
+.table th {
+    position: sticky;
+    top: 0;
+    background-color: #121212;
+    color: var(--text-secondary);
+    font-weight: 500;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 1rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    z-index: 10;
+}
+
+.table td {
+    padding: 0.85rem 1rem;
+    font-size: 0.9rem;
+    color: var(--text-color);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.03);
+    vertical-align: middle;
+}
+
+.row:hover td {
+    background-color: rgba(255, 255, 255, 0.03);
+}
+
+.row:last-child td {
+    border-bottom: none;
+}
+
+.numberCol {
+    text-align: right;
+}
+
+.amountCol {
+    text-align: right;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+    color: var(--text-color);
+}
+
+.idCol {
+    font-variant-numeric: tabular-nums;
+    color: var(--text-secondary);
+}
+
+.dateCol {
+    font-variant-numeric: tabular-nums;
+    white-space: nowrap;
+}
+
+.entidadCol {
+    color: #a1a1aa;
+    font-size: 0.85rem;
+}
+
+.causalBadge {
+    display: inline-block;
+    padding: 0.25rem 0.65rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.03em;
+    background-color: rgba(245, 166, 35, 0.1);
+    color: #f5a623;
+    border: 1px solid rgba(245, 166, 35, 0.2);
+}
+
+.success {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: #50e3c2;
+    font-size: 0.85rem;
+}
+
+.pending {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: #f5a623;
+    font-size: 0.85rem;
+    font-style: italic;
+}
+
+.danger {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    color: #ff4d4f;
+    font-size: 0.85rem;
+}
+
+.dangerBadge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.2rem 0.5rem;
+    border-radius: 4px;
+    background-color: rgba(255, 0, 0, 0.15);
+    color: #ff4d4f;
+    font-size: 0.75rem;
+    font-weight: 600;
+}
+
+.muted {
+    color: rgba(255, 255, 255, 0.3);
+}
+
+/* Custom Scrollbar for the table wrapper */
+.tableWrapper::-webkit-scrollbar {
+    width: 6px;
+    height: 8px;
+}
+
+.tableWrapper::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.02);
+    border-radius: 4px;
+}
+
+.tableWrapper::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.15);
+    border-radius: 4px;
+}
+
+.tableWrapper::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.25);
+}
