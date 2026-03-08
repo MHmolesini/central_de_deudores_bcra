@@ -3,6 +3,8 @@ import type { BCRAHistorialResponse, BCRAChequesResponse } from '../../services/
 import { DebtChart } from './DebtChart';
 import { InflowChart } from './InflowChart';
 import { DebtHeatmap } from './DebtHeatmap';
+import { EntityPieChart } from './EntityPieChart';
+import { BankLogo } from './BankLogo';
 import { StatusIndicator } from './StatusIndicator';
 import { InfoSection } from './InfoSection';
 import { AlertCircle, FileWarning, ShieldAlert, DollarSign, Coins, ArrowLeftRight } from 'lucide-react';
@@ -87,6 +89,17 @@ export function Dashboard({ historial, cheques, exchangeRates, inflationIndex, o
 
     // Check info
     const totalCheques = cheques?.results?.causales?.reduce((acc: number, c: any) => acc + c.entidades.reduce((eAcc: number, e: any) => eAcc + e.detalle.length, 0), 0) || 0;
+
+    const getBorderColor = (sit?: number) => {
+        switch (sit) {
+            case 1: return 'rgba(80, 227, 194, 0.35)';  // green
+            case 2: return 'rgba(245, 166, 35, 0.35)';  // yellow
+            case 3: return 'rgba(245, 120, 35, 0.35)';  // orange
+            case 4: return 'rgba(255, 0, 0, 0.35)';     // red
+            case 5: case 6: return 'rgba(139, 0, 0, 0.35)'; // darkred
+            default: return 'rgba(161, 161, 170, 0.25)'; // gray
+        }
+    };
 
     return (
         <>
@@ -205,15 +218,35 @@ export function Dashboard({ historial, cheques, exchangeRates, inflationIndex, o
                         </div>
                     </div>
 
-                    <DebtHeatmap data={periodos} currency={currency} exchangeRates={exchangeRates} inflationIndex={inflationIndex} />
+                    <div className={styles.splitRow}>
+                        <div style={{ flex: 2, minWidth: 0 }}>
+                            <DebtHeatmap data={periodos} currency={currency} exchangeRates={exchangeRates} inflationIndex={inflationIndex} />
+                        </div>
+                        <div className={styles.card} style={{ flex: 1, minWidth: 0 }}>
+                            <div className={styles.cardHeader} style={{ marginBottom: '1rem' }}>
+                                <div>
+                                    <h3>Composición de Deuda</h3>
+                                    <p className={styles.cardSubtitle}>Último mes reportado ({periodoStr})</p>
+                                </div>
+                            </div>
+                            <EntityPieChart data={periodos} currency={currency} exchangeRates={exchangeRates} inflationIndex={inflationIndex} />
+                        </div>
+                    </div>
 
                     <div className={`${styles.card} ${styles.entitiesCard}`}>
                         <h3>Situación Actual por Entidad</h3>
                         <div className={styles.entityGrid}>
                             {currentPeriod.entidades.map((entidad, idx) => (
-                                <div key={idx} className={styles.entityRow}>
-                                    <div className={styles.entityInfo}>
-                                        <span className={styles.entityName}>{entidad.entidad}</span>
+                                <div
+                                    key={idx}
+                                    className={styles.entityRow}
+                                    style={{ borderColor: getBorderColor(entidad.situacion) }}
+                                >
+                                    <div className={styles.entityRowTop}>
+                                        <BankLogo bankName={entidad.entidad} size={36} />
+                                        <span className={styles.entityName} title={entidad.entidad}>{entidad.entidad}</span>
+                                    </div>
+                                    <div className={styles.entityRowBottom}>
                                         <span className={styles.entityAmount}>
                                             {currency === 'USD' ? 'USD ' : '$ '}
                                             {formatValue(entidad.monto).toLocaleString('es-AR', {
@@ -221,8 +254,8 @@ export function Dashboard({ historial, cheques, exchangeRates, inflationIndex, o
                                             })}
                                             {currency === 'USD' ? '' : 'M'}
                                         </span>
+                                        <StatusIndicator situacion={entidad.situacion} />
                                     </div>
-                                    <StatusIndicator situacion={entidad.situacion} />
                                 </div>
                             ))}
                             {currentPeriod.entidades.length === 0 && (

@@ -296,32 +296,41 @@
 
 .entityRow {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 1rem;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1.25rem;
     background-color: rgba(255, 255, 255, 0.02);
     border: 1px solid rgba(255, 255, 255, 0.05);
     border-radius: var(--radius-md);
-    transition: background-color var(--transition-fast);
+    transition: background-color var(--transition-fast), border-color 0.2s;
 }
 
 .entityRow:hover {
     background-color: rgba(255, 255, 255, 0.05);
 }
 
-.entityInfo {
+.entityRowTop {
     display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    max-width: 65%;
+    align-items: center;
+    gap: 0.75rem;
+    width: 100%;
 }
 
 .entityName {
     font-weight: 500;
     font-size: 0.95rem;
+    color: var(--text-color, #fff);
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    flex: 1;
+}
+
+.entityRowBottom {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
 }
 
 .entityAmount {
